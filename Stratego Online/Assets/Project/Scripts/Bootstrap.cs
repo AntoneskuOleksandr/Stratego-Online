@@ -18,6 +18,6 @@ public class Bootstrap : MonoBehaviour
 
         boardManager.Initialize(boardGenerator, configManager);
         gameManager.Initialize(boardManager, piecePlacementManager);
-        piecePlacementManager.Initialize(boardManager); 
+        piecePlacementManager.Initialize(boardManager, configManager);
     }
 }

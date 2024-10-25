@@ -18,8 +18,26 @@ public class GameManager : MonoBehaviour, IGameManager
         piecePlacementManager.PlacePiecesRandomly();
     }
 
+    public Piece GetSelectedPiece()
+    {
+        return selectedPiece;
+    }
+
+    public void DeselectPiece()
+    {
+        if (selectedPiece != null)
+        {
+            selectedPiece.Deselect();
+            selectedPiece = null;
+        }
+    }
+
     public void SelectPiece(Piece piece)
     {
+        if (selectedPiece != null)
+        {
+            selectedPiece.Deselect();
+        }
         selectedPiece = piece;
         piece.Select();
     }

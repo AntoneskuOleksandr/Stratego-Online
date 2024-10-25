@@ -23,7 +23,14 @@ public class Tile : MonoBehaviour
     {
         if (IsOccupied)
         {
-            gameManager.SelectPiece(occupyingPiece);
+            if (gameManager.GetSelectedPiece() == occupyingPiece)
+            {
+                gameManager.DeselectPiece();
+            }
+            else
+            {
+                gameManager.SelectPiece(occupyingPiece);
+            }
         }
         else
         {

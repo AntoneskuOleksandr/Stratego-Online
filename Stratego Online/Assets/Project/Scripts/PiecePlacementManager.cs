@@ -3,24 +3,31 @@ using UnityEngine;
 
 public class PiecePlacementManager : MonoBehaviour
 {
-    [SerializeField] private GameObject[] pieces;
-    private IBoardManager boardManager; 
+    private IBoardManager boardManager;
+    private ConfigManager configManager;
 
-    public void Initialize(IBoardManager boardManager)
+    public void Initialize(IBoardManager boardManager, ConfigManager configManager)
     {
         this.boardManager = boardManager;
+        this.configManager = configManager;
     }
 
     public void PlacePiecesRandomly()
     {
-        foreach (GameObject piecePrefab in pieces)
+        for (int i = 0; i < configManager.piecePrefabs.Length; i++)
         {
-            Tile randomTile = GetRandomEmptyTile();
-            if (randomTile != null)
+            GameObject piecePrefab = configManager.piecePrefabs[i];
+            int pieceCount = configManager.pieceCounts[i];
+
+            for (int j = 0; j < pieceCount; j++)
             {
-                GameObject pieceObject = Instantiate(piecePrefab, randomTile.transform.position, Quaternion.identity);
-                Piece piece = pieceObject.GetComponent<Piece>();
-                piece.Initialize(randomTile);
+                Tile randomTile = GetRandomEmptyTile();
+                if (randomTile != null)
+                {
+                    GameObject pieceObject = Instantiate(piecePrefab, randomTile.transform.position, Quaternion.identity);
+                    Piece piece = pieceObject.GetComponent<Piece>();
+                    piece.Initialize(randomTile);
+                }
             }
         }
     }
@@ -28,13 +35,14 @@ public class PiecePlacementManager : MonoBehaviour
     private Tile GetRandomEmptyTile()
     {
         Tile[,] allTiles = boardManager.GetAllTiles();
-        Tile[] emptyTiles = System.Array.FindAll(allTiles.Cast<Tile>().ToArray(), tile => !tile.IsOccupied); 
+        Tile[] emptyTiles = System.Array.FindAll(allTiles.Cast<Tile>().ToArray(), tile => !tile.IsOccupied);
 
         if (emptyTiles.Length > 0)
         {
             return emptyTiles[Random.Range(0, emptyTiles.Length)];
         }
 
+        Debug.LogWarning("There are no empty tiles");
         return null;
     }
 }
