@@ -11,12 +11,17 @@ public class Tile : MonoBehaviour
         }
         private set { }
     }
+    public Vector2Int IndexInMatrix;
     private Piece occupyingPiece;
     private IGameManager gameManager;
+    private Material originalMaterial;
+    private Material highlightedMaterial;
 
-    public void Initialize(IGameManager gameManager)
+    public void Initialize(IGameManager gameManager, Material highlightedMaterial)
     {
         this.gameManager = gameManager;
+        this.highlightedMaterial = highlightedMaterial;
+        originalMaterial = GetComponent<Renderer>().material;
     }
 
     private void OnMouseDown()
@@ -34,7 +39,7 @@ public class Tile : MonoBehaviour
         }
         else
         {
-            gameManager.MoveSelectedPieceTo(this);
+            gameManager.TryToMoveSelectedPieceTo(this);
         }
     }
 
@@ -53,5 +58,15 @@ public class Tile : MonoBehaviour
     public bool IsTileOccupied()
     {
         return IsOccupied;
+    }
+
+    public void Highlight()
+    {
+        GetComponent<Renderer>().material = highlightedMaterial;
+    }
+
+    public void Unhighlight()
+    {
+        GetComponent<Renderer>().material = originalMaterial;
     }
 }

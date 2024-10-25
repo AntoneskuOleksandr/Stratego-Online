@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour, IGameManager
@@ -42,12 +43,27 @@ public class GameManager : MonoBehaviour, IGameManager
         piece.Select();
     }
 
-    public void MoveSelectedPieceTo(Tile tile)
+    public void TryToMoveSelectedPieceTo(Tile tile)
     {
-        if (selectedPiece != null)
+        if (CanMove(tile))
         {
             selectedPiece.MoveToTile(tile);
             selectedPiece = null;
         }
+        else
+            DeselectPiece();
+    }
+
+    private bool CanMove(Tile tile)
+    {
+        if (selectedPiece != null)
+        {
+            List<Tile> possibleMoves = selectedPiece.GetPossibleMoves(boardManager.GetAllTiles());
+            if (possibleMoves.Contains(tile))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

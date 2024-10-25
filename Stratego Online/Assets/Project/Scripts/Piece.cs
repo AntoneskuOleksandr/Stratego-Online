@@ -1,11 +1,14 @@
 using UnityEngine;
+using System.Collections.Generic;
 using DG.Tweening;
 
-public class Piece : MonoBehaviour
+public abstract class Piece : MonoBehaviour
 {
-    private Tile currentTile;
+    protected Tile currentTile;
     private float originalYPosition;
     private float selectedYPosition;
+    protected IBoardManager boardManager;
+    private List<Tile> highlightedTiles = new List<Tile>();
 
     private void Awake()
     {
@@ -13,8 +16,9 @@ public class Piece : MonoBehaviour
         selectedYPosition = originalYPosition + 0.5f;
     }
 
-    public void Initialize(Tile startTile)
+    public void Initialize(Tile startTile, IBoardManager boardManager)
     {
+        this.boardManager = boardManager;
         currentTile = startTile;
         currentTile.PlacePiece(this);
         transform.position = startTile.Center;
@@ -22,13 +26,13 @@ public class Piece : MonoBehaviour
 
     public void Select()
     {
-        Debug.Log("Piece selected");
+        HighlightMoves();
         RaisePiece();
     }
 
     public void Deselect()
     {
-        Debug.Log("Piece deselected");
+        UnhighlightMoves();
         LowerPiece();
     }
 
@@ -38,10 +42,8 @@ public class Piece : MonoBehaviour
         {
             currentTile.RemovePiece();
         }
-
         currentTile = newTile;
         newTile.PlacePiece(this);
-
         transform.DOMove(newTile.Center, 0.3f);
         Deselect();
     }
@@ -54,5 +56,26 @@ public class Piece : MonoBehaviour
     private void LowerPiece()
     {
         transform.DOMoveY(originalYPosition, 0.3f);
+    }
+
+    public abstract List<Tile> GetPossibleMoves(Tile[,] allTiles);
+
+    private void HighlightMoves()
+    {
+        List<Tile> possibleMoves = GetPossibleMoves(boardManager.GetAllTiles());
+        highlightedTiles = possibleMoves; 
+        foreach (Tile tile in possibleMoves)
+        {
+            tile.Highlight();
+        }
+    }
+
+    private void UnhighlightMoves()
+    {
+        foreach (Tile tile in highlightedTiles) 
+        {
+            tile.Unhighlight();
+        }
+        highlightedTiles.Clear();
     }
 }

@@ -73,6 +73,7 @@ public class BoardGenerator : MonoBehaviour
         tileObject.layer = layer;
         tileObject.AddComponent<BoxCollider>();
         tileObject.AddComponent<Tile>();
+        tileObject.GetComponent<Tile>().IndexInMatrix = new Vector2Int(x, y);
 
         return tileObject;
     }

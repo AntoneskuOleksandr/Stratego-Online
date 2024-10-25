@@ -26,7 +26,7 @@ public class PiecePlacementManager : MonoBehaviour
                 {
                     GameObject pieceObject = Instantiate(piecePrefab, randomTile.transform.position, Quaternion.identity);
                     Piece piece = pieceObject.GetComponent<Piece>();
-                    piece.Initialize(randomTile);
+                    piece.Initialize(randomTile, boardManager);
                 }
             }
         }
