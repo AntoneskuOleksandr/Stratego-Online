@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 public class Scout : Piece
 {
@@ -8,23 +9,40 @@ public class Scout : Piece
         int x = currentTile.IndexInMatrix.x;
         int y = currentTile.IndexInMatrix.y;
 
-        if (x + 1 < allTiles.GetLength(0) && !allTiles[x + 1, y].IsOccupied)
+        for (int i = y + 1; i < allTiles.GetLength(1); i++)
         {
-            possibleMoves.Add(allTiles[x + 1, y]);
+            if (!AddTileIfValid(allTiles[x, i], possibleMoves))
+                break;
         }
-        if (x - 1 >= 0 && !allTiles[x - 1, y].IsOccupied)
+
+        for (int i = y - 1; i >= 0; i--)
         {
-            possibleMoves.Add(allTiles[x - 1, y]);
+            if (!AddTileIfValid(allTiles[x, i], possibleMoves))
+                break;
         }
-        if (y + 1 < allTiles.GetLength(1) && !allTiles[x, y + 1].IsOccupied)
+
+        for (int i = x + 1; i < allTiles.GetLength(0); i++)
         {
-            possibleMoves.Add(allTiles[x, y + 1]);
+            if (!AddTileIfValid(allTiles[i, y], possibleMoves))
+                break;
         }
-        if (y - 1 >= 0 && !allTiles[x, y - 1].IsOccupied)
+
+        for (int i = x - 1; i >= 0; i--)
         {
-            possibleMoves.Add(allTiles[x, y - 1]);
+            if (!AddTileIfValid(allTiles[i, y], possibleMoves))
+                break;
         }
 
         return possibleMoves;
+    }
+
+    private bool AddTileIfValid(Tile tile, List<Tile> possibleMoves)
+    {
+        if (tile.IsLake || tile.IsOccupied)
+        {
+            return false;
+        }
+        possibleMoves.Add(tile);
+        return true;
     }
 }

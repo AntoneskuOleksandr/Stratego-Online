@@ -63,7 +63,7 @@ public abstract class Piece : MonoBehaviour
     protected List<Tile> GetFilteredMoves(Tile[,] allTiles)
     {
         List<Tile> possibleMoves = GetPossibleMoves(allTiles);
-        return possibleMoves.FindAll(tile => !tile.IsLake); // исключаем озера из возможных ходов
+        return possibleMoves.FindAll(tile => !tile.IsLake);
     }
 
     private void HighlightMoves()
