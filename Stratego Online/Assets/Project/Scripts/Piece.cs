@@ -1,5 +1,5 @@
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 using DG.Tweening;
 
 public abstract class Piece : MonoBehaviour
@@ -60,10 +60,16 @@ public abstract class Piece : MonoBehaviour
 
     public abstract List<Tile> GetPossibleMoves(Tile[,] allTiles);
 
+    protected List<Tile> GetFilteredMoves(Tile[,] allTiles)
+    {
+        List<Tile> possibleMoves = GetPossibleMoves(allTiles);
+        return possibleMoves.FindAll(tile => !tile.IsLake); // исключаем озера из возможных ходов
+    }
+
     private void HighlightMoves()
     {
-        List<Tile> possibleMoves = GetPossibleMoves(boardManager.GetAllTiles());
-        highlightedTiles = possibleMoves; 
+        List<Tile> possibleMoves = GetFilteredMoves(boardManager.GetAllTiles());
+        highlightedTiles = possibleMoves;
         foreach (Tile tile in possibleMoves)
         {
             tile.Highlight();
@@ -72,7 +78,7 @@ public abstract class Piece : MonoBehaviour
 
     private void UnhighlightMoves()
     {
-        foreach (Tile tile in highlightedTiles) 
+        foreach (Tile tile in highlightedTiles)
         {
             tile.Unhighlight();
         }

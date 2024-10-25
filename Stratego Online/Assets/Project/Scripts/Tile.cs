@@ -12,16 +12,19 @@ public class Tile : MonoBehaviour
         private set { }
     }
     public Vector2Int IndexInMatrix;
+    public bool IsLake;
     private Piece occupyingPiece;
     private IGameManager gameManager;
-    private Material originalMaterial;
-    private Material highlightedMaterial;
+    private Material tileMaterial;
+    private Color originalColor;
+    private Color highlightedColor;
 
-    public void Initialize(IGameManager gameManager, Material highlightedMaterial)
+    public void Initialize(IGameManager gameManager, Color highlightedColor)
     {
         this.gameManager = gameManager;
-        this.highlightedMaterial = highlightedMaterial;
-        originalMaterial = GetComponent<Renderer>().material;
+        tileMaterial = GetComponent<Renderer>().material;
+        originalColor = tileMaterial.color;
+        this.highlightedColor = highlightedColor;
     }
 
     private void OnMouseDown()
@@ -62,11 +65,11 @@ public class Tile : MonoBehaviour
 
     public void Highlight()
     {
-        GetComponent<Renderer>().material = highlightedMaterial;
+        tileMaterial.color = Color.Lerp(originalColor, highlightedColor, 0.5f);
     }
 
     public void Unhighlight()
     {
-        GetComponent<Renderer>().material = originalMaterial;
+        tileMaterial.color = originalColor;
     }
 }

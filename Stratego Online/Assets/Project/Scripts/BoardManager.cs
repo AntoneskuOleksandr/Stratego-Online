@@ -18,14 +18,12 @@ public class BoardManager : MonoBehaviour, IBoardManager
     {
         tiles = boardGenerator.GenerateBoard();
 
-        Material highlightedMaterial = config.tileMaterialHighlighted;
-
         for (int y = 0; y < tiles.GetLength(1); y++)
         {
             for (int x = 0; x < tiles.GetLength(0); x++)
             {
                 Tile tileComponent = tiles[x, y].GetComponent<Tile>();
-                tileComponent.Initialize(gameManager, highlightedMaterial);
+                tileComponent.Initialize(gameManager, config.tileColorHighlighted);
             }
         }
     }

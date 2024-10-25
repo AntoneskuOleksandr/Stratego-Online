@@ -24,6 +24,7 @@ public class BoardGenerator : MonoBehaviour
                 if (IsLakeTile(x, y))
                 {
                     tiles[x, y] = GenerateSingleTile(config.tileSize, x, y, LayerMask.NameToLayer("Lake"), config.tileMaterialLake);
+                    tiles[x, y].GetComponent<Tile>().IsLake = true;
                 }
                 else
                 {

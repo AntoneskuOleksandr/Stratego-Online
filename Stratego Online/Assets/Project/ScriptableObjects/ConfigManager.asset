@@ -18,7 +18,8 @@ MonoBehaviour:
   tileMaterialLake: {fileID: 2100000, guid: bf9cce061d07be14a8d89d3d28185012, type: 2}
   tileMaterialWhite: {fileID: 2100000, guid: 351be7203fbdacb46b778e2270ca7cf5, type: 2}
   tileMaterialBlack: {fileID: 2100000, guid: d7cc20bea0765d941bf921a23dc9f34d, type: 2}
-  tileMaterialHighlighted: {fileID: 2100000, guid: d4784b2cf088abd4cac06cb03d757337, type: 2}
+  tileColorHighlighted: {r: 0.016202211, g: 1, b: 0, a: 0.5019608}
   piecePrefabs:
   - {fileID: 4616628865154139444, guid: 7726a6febe4b02a4d9f250cfbf14848e, type: 3}
-  pieceCounts: 02000000
+  - {fileID: 7228848378295833734, guid: 1f21763d537238b46bf040e960076263, type: 3}
+  pieceCounts: 0200000002000000
