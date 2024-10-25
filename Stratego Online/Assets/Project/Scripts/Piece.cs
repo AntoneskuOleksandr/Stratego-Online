@@ -4,9 +4,16 @@ public class Piece : MonoBehaviour
 {
     private Tile currentTile;
 
+    public void Initialize(Tile startTile)
+    {
+        currentTile = startTile;
+        currentTile.PlacePiece(this);
+        transform.position = startTile.Center;
+    }
+
     public void Select()
     {
-        // Логика выбора фигуры
+        Debug.Log("Piece selected");
     }
 
     public void MoveToTile(Tile newTile)
@@ -15,16 +22,9 @@ public class Piece : MonoBehaviour
         {
             currentTile.RemovePiece();
         }
+
         currentTile = newTile;
         newTile.PlacePiece(this);
-        // Обновление позиции в пространстве
-        transform.position = newTile.transform.position;
-    }
-
-    public void Initialize(Tile startTile)
-    {
-        currentTile = startTile;
-        currentTile.PlacePiece(this);
-        transform.position = startTile.transform.position;
+        transform.position = newTile.Center;
     }
 }

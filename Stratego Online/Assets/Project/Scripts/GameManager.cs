@@ -1,25 +1,27 @@
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviour, IGameManager
 {
     private Piece selectedPiece;
-    private UIManager uiManager;
-    private BoardManager boardManager;
+    private IBoardManager boardManager;
+    private PiecePlacementManager piecePlacementManager;
 
-    public void Initialize(UIManager uiManager, BoardManager boardManager)
+    public void Initialize(IBoardManager boardManager, PiecePlacementManager piecePlacementManager)
     {
-        this.uiManager = uiManager;
         this.boardManager = boardManager;
+        this.piecePlacementManager = piecePlacementManager;
     }
 
     private void Start()
     {
         boardManager.GenerateBoard(this);
+        piecePlacementManager.PlacePiecesRandomly();
     }
 
     public void SelectPiece(Piece piece)
     {
         selectedPiece = piece;
+        piece.Select();
     }
 
     public void MoveSelectedPieceTo(Tile tile)

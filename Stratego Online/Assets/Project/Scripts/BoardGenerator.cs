@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 public class BoardGenerator : MonoBehaviour
@@ -33,11 +34,19 @@ public class BoardGenerator : MonoBehaviour
         return tiles;
     }
 
+    private readonly Vector2Int[] lakeTiles = new Vector2Int[]
+    {
+        new Vector2Int(2, 4), new Vector2Int(2, 5),
+        new Vector2Int(3, 4), new Vector2Int(3, 5),
+        new Vector2Int(6, 4), new Vector2Int(6, 5),
+        new Vector2Int(7, 4), new Vector2Int(7, 5)
+    };
+
     private bool IsLakeTile(int x, int y)
     {
-        return (x == 2 && y == 4) || (x == 2 && y == 5) || (x == 3 && y == 4) || (x == 3 && y == 5) ||
-               (x == 6 && y == 4) || (x == 6 && y == 5) || (x == 7 && y == 4) || (x == 7 && y == 5);
+        return lakeTiles.Contains(new Vector2Int(x, y));
     }
+
 
     private GameObject GenerateSingleTile(float tileSize, int x, int y, LayerMask layer, Material material)
     {
@@ -63,7 +72,7 @@ public class BoardGenerator : MonoBehaviour
 
         tileObject.layer = layer;
         tileObject.AddComponent<BoxCollider>();
-        tileObject.AddComponent<Tile>().IndexInMatrix = new Vector2Int(x, y);
+        tileObject.AddComponent<Tile>();
 
         return tileObject;
     }

@@ -2,21 +2,28 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
-    public bool isOccupied;
-    public Vector2Int IndexInMatrix;
+    public bool IsOccupied { get; private set; }
+    public Vector3 Center
+    {
+        get
+        {
+            return GetComponent<Renderer>().bounds.center;
+        }
+        private set { }
+    }
     private Piece occupyingPiece;
-    private GameManager gameManager;
+    private IGameManager gameManager;
 
-    public void Initialize(GameManager gameManager)
+    public void Initialize(IGameManager gameManager)
     {
         this.gameManager = gameManager;
     }
 
-    void OnMouseDown()
+    private void OnMouseDown()
     {
-        if (isOccupied)
+        if (IsOccupied)
         {
-            occupyingPiece.Select();
+            gameManager.SelectPiece(occupyingPiece);
         }
         else
         {
@@ -27,17 +34,17 @@ public class Tile : MonoBehaviour
     public void PlacePiece(Piece piece)
     {
         occupyingPiece = piece;
-        isOccupied = true;
+        IsOccupied = true;
     }
 
     public void RemovePiece()
     {
         occupyingPiece = null;
-        isOccupied = false;
+        IsOccupied = false;
     }
 
-    public bool IsOccupied()
+    public bool IsTileOccupied()
     {
-        return isOccupied;
+        return IsOccupied;
     }
 }
