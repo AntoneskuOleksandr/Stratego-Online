@@ -18,7 +18,6 @@ public class PiecePlacementManager : MonoBehaviour
         {
             GameObject piecePrefab = configManager.piecePrefabs[i];
             int pieceCount = configManager.pieceCounts[i];
-
             for (int j = 0; j < pieceCount; j++)
             {
                 Tile randomTile = GetRandomEmptyTile();
@@ -35,14 +34,12 @@ public class PiecePlacementManager : MonoBehaviour
     private Tile GetRandomEmptyTile()
     {
         Tile[,] allTiles = boardManager.GetAllTiles();
-        Tile[] emptyTiles = System.Array.FindAll(allTiles.Cast<Tile>().ToArray(), tile => !tile.IsOccupied);
-
+        Tile[] emptyTiles = System.Array.FindAll(allTiles.Cast<Tile>().ToArray(), tile => !tile.IsOccupied && tile.IndexInMatrix.y < 4);
         if (emptyTiles.Length > 0)
         {
             return emptyTiles[Random.Range(0, emptyTiles.Length)];
         }
-
-        Debug.LogWarning("There are no empty tiles");
+        Debug.LogWarning("There are no empty tiles in the first four rows");
         return null;
     }
 }
