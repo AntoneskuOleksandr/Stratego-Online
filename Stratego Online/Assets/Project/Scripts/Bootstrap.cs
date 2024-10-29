@@ -7,6 +7,7 @@ public class Bootstrap : MonoBehaviour
     [SerializeField] private BoardGenerator boardGenerator;
     [SerializeField] private ConfigManager configManager;
     [SerializeField] private PiecePlacementManager piecePlacementManager;
+    [SerializeField] private PieceSelectionManager pieceSelectionManager;
 
     private IGameManager gameManager;
     private IBoardManager boardManager;
@@ -17,7 +18,8 @@ public class Bootstrap : MonoBehaviour
         boardManager = (IBoardManager)boardManagerBehaviour;
 
         boardManager.Initialize(boardGenerator, configManager);
-        gameManager.Initialize(boardManager, piecePlacementManager);
-        piecePlacementManager.Initialize(boardManager, configManager);
+        gameManager.Initialize(boardManager);
+        pieceSelectionManager.Initialize();
+        //piecePlacementManager.Initialize(boardManager, configManager);
     }
 }

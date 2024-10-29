@@ -1,6 +1,6 @@
 public interface IGameManager
 {
-    void Initialize(IBoardManager boardManager, PiecePlacementManager piecePlacementManager);
+    void Initialize(IBoardManager boardManager);
     void SelectPiece(Piece piece);
     void TryToMoveSelectedPieceTo(Tile tile);
     Piece GetSelectedPiece();

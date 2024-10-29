@@ -5,32 +5,20 @@ public class GameManager : MonoBehaviour, IGameManager
 {
     private Piece selectedPiece;
     private IBoardManager boardManager;
-    private PiecePlacementManager piecePlacementManager;
 
-    public void Initialize(IBoardManager boardManager, PiecePlacementManager piecePlacementManager)
+    public void Initialize(IBoardManager boardManager)
     {
         this.boardManager = boardManager;
-        this.piecePlacementManager = piecePlacementManager;
     }
 
     private void Start()
     {
         boardManager.GenerateBoard(this);
-        piecePlacementManager.PlacePiecesRandomly();
     }
 
     public Piece GetSelectedPiece()
     {
         return selectedPiece;
-    }
-
-    public void DeselectPiece()
-    {
-        if (selectedPiece != null)
-        {
-            selectedPiece.Deselect();
-            selectedPiece = null;
-        }
     }
 
     public void SelectPiece(Piece piece)
@@ -41,6 +29,15 @@ public class GameManager : MonoBehaviour, IGameManager
         }
         selectedPiece = piece;
         piece.Select();
+    }
+
+    public void DeselectPiece()
+    {
+        if (selectedPiece != null)
+        {
+            selectedPiece.Deselect();
+            selectedPiece = null;
+        }
     }
 
     public void TryToMoveSelectedPieceTo(Tile tile)
