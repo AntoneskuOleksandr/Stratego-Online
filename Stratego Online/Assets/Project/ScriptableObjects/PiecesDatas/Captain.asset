@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d8f50512121c414ca3f15b4a82a90c1, type: 3}
   m_Name: Captain
   m_EditorClassIdentifier: 
-  pieceName: Captain
-  rank: 6
-  icon: {fileID: 21300000, guid: e6b2be187b2f12449801031204a15d5b, type: 3}
+  Name: Captain
+  Rank: 6
+  Count: 4
+  Icon: {fileID: 21300000, guid: e6b2be187b2f12449801031204a15d5b, type: 3}

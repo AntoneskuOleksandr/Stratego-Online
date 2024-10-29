@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d8f50512121c414ca3f15b4a82a90c1, type: 3}
   m_Name: Sergeant
   m_EditorClassIdentifier: 
-  pieceName: Sergeant
-  rank: 4
-  icon: {fileID: 21300000, guid: 402c1e6ac0e9a924da58b22fbe025916, type: 3}
+  Name: Sergeant
+  Rank: 4
+  Count: 4
+  Icon: {fileID: 21300000, guid: 402c1e6ac0e9a924da58b22fbe025916, type: 3}

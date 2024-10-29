@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d8f50512121c414ca3f15b4a82a90c1, type: 3}
   m_Name: General
   m_EditorClassIdentifier: 
-  pieceName: General
-  rank: 9
-  icon: {fileID: 21300000, guid: 2354478c46ec64249aa60b683ae76fda, type: 3}
+  Name: General
+  Rank: 9
+  Count: 1
+  Icon: {fileID: 21300000, guid: 2354478c46ec64249aa60b683ae76fda, type: 3}

@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d8f50512121c414ca3f15b4a82a90c1, type: 3}
   m_Name: Miner
   m_EditorClassIdentifier: 
-  pieceName: Miner
-  rank: 3
-  icon: {fileID: 21300000, guid: b4aa9ab9c9ab4ae45bdbbb79aff0af6e, type: 3}
+  Name: Miner
+  Rank: 3
+  Count: 5
+  Icon: {fileID: 21300000, guid: b4aa9ab9c9ab4ae45bdbbb79aff0af6e, type: 3}

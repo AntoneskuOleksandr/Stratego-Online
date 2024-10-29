@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d8f50512121c414ca3f15b4a82a90c1, type: 3}
   m_Name: Scout
   m_EditorClassIdentifier: 
-  pieceName: Scout
-  rank: 2
-  icon: {fileID: 21300000, guid: 247b90b0396f23e47a4d87f1360e1816, type: 3}
+  Name: Scout
+  Rank: 2
+  Count: 8
+  Icon: {fileID: 21300000, guid: 247b90b0396f23e47a4d87f1360e1816, type: 3}

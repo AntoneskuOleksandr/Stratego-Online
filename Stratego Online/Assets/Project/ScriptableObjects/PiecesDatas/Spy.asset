@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d8f50512121c414ca3f15b4a82a90c1, type: 3}
   m_Name: Spy
   m_EditorClassIdentifier: 
-  pieceName: Spy
-  rank: 1
-  icon: {fileID: 21300000, guid: ac6bd75f30b4e5142b24e3fafdd82bf1, type: 3}
+  Name: Spy
+  Rank: 1
+  Count: 1
+  Icon: {fileID: 21300000, guid: ac6bd75f30b4e5142b24e3fafdd82bf1, type: 3}
