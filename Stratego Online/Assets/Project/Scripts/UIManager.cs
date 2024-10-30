@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
-    [SerializeField] GameObject buttonPrefab;
+    [SerializeField] private GameObject buttonPrefab;
+    [SerializeField] private Button readyButton;
     [SerializeField] Transform buttonContainer;
     private Dictionary<string, int> pieceCounts = new Dictionary<string, int>();
     private List<PieceData> originalPiecesData;
@@ -16,6 +18,12 @@ public class UIManager : MonoBehaviour
         this.gameManager = gameManager;
         originalPiecesData = config.PiecesData;
         GenerateButtons();
+
+        readyButton.onClick.AddListener(() =>
+        {
+            gameManager.StartGame();
+            HideUI();
+        });
     }
 
     private void GenerateButtons()
@@ -71,5 +79,10 @@ public class UIManager : MonoBehaviour
     public int GetPieceCurrentCount(string name)
     {
         return pieceCounts[name];
+    }
+
+    private void HideUI()
+    {
+        this.gameObject.SetActive(false);
     }
 }

@@ -11,6 +11,10 @@ public class GameManager : MonoBehaviour, IGameManager
         this.boardManager = boardManager;
     }
 
+    public void StartGame()
+    {
+    }
+
     public Piece GetSelectedPiece()
     {
         return selectedPiece;

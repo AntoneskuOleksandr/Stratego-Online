@@ -33,7 +33,6 @@ public class Tile : MonoBehaviour
         {
             if (gameManager.GetSelectedPiece() == occupyingPiece)
             {
-                Debug.Log("DeselectPiece");
                 gameManager.DeselectPiece();
             }
             else
@@ -79,5 +78,10 @@ public class Tile : MonoBehaviour
     public void Unhighlight()
     {
         tileMaterial.color = originalColor;
+    }
+
+    public void SetGameManager(IGameManager newGameManager)
+    {
+        this.gameManager = newGameManager;
     }
 }

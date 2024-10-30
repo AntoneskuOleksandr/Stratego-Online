@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 public class PreGameManager : MonoBehaviour, IGameManager
 {
@@ -9,6 +10,7 @@ public class PreGameManager : MonoBehaviour, IGameManager
     private ConfigManager config;
     private bool isPlayerOne = true;
     private int currentPeaceCount = 1;
+    public UnityEvent OnStartGame;
 
     public void Initialize(IBoardManager boardManager, UIManager uiManager, ConfigManager config)
     {
@@ -16,6 +18,11 @@ public class PreGameManager : MonoBehaviour, IGameManager
         this.uiManager = uiManager;
         this.config = config;
         boardManager.GenerateBoard(this);
+    }
+
+    public void StartGame()
+    {
+        OnStartGame.Invoke();
     }
 
     private void Update()
@@ -46,6 +53,11 @@ public class PreGameManager : MonoBehaviour, IGameManager
 
                 int newCount = uiManager.GetPieceCurrentCount(selectedPiece.Name) - 1;
                 uiManager.UpdatePieceCount(selectedPiece.Name, newCount);
+
+                if (newCount == 0)
+                {
+                    uiManager.DeselectPiece();
+                }
             }
         }
     }
