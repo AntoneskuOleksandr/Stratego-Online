@@ -42,7 +42,7 @@ public class Bootstrap : MonoBehaviour
                 allTiles[x, y].SetGameManager(gameManager);
             }
         }
-
+        Destroy(((Component)preGameManager).gameObject);
         gameManager.Initialize(boardManager, uiManager, configManager);
         gameManager.StartGame();
     }
