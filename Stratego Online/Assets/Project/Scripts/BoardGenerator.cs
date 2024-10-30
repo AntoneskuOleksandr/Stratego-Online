@@ -13,8 +13,8 @@ public class BoardGenerator : MonoBehaviour
 
     public GameObject[,] GenerateBoard()
     {
-        int tileCountX = config.boardRows;
-        int tileCountY = config.boardColumns;
+        int tileCountX = config.BoardRows;
+        int tileCountY = config.BoardColumns;
         tiles = new GameObject[tileCountX, tileCountY];
 
         for (int y = 0; y < tileCountY; y++)
@@ -23,12 +23,12 @@ public class BoardGenerator : MonoBehaviour
             {
                 if (IsLakeTile(x, y))
                 {
-                    tiles[x, y] = GenerateSingleTile(config.tileSize, x, y, LayerMask.NameToLayer("Lake"), config.tileMaterialLake);
+                    tiles[x, y] = GenerateSingleTile(config.TileSize, x, y, LayerMask.NameToLayer("Lake"), config.TileMaterialLake);
                     tiles[x, y].GetComponent<Tile>().IsLake = true;
                 }
                 else
                 {
-                    tiles[x, y] = GenerateSingleTile(config.tileSize, x, y, LayerMask.NameToLayer("Tile"), (x + y) % 2 == 0 ? config.tileMaterialWhite : config.tileMaterialBlack);
+                    tiles[x, y] = GenerateSingleTile(config.TileSize, x, y, LayerMask.NameToLayer("Tile"), (x + y) % 2 == 0 ? config.TileMaterialWhite : config.TileMaterialBlack);
                 }
             }
         }

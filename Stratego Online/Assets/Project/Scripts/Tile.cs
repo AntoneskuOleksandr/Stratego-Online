@@ -33,6 +33,7 @@ public class Tile : MonoBehaviour
         {
             if (gameManager.GetSelectedPiece() == occupyingPiece)
             {
+                Debug.Log("DeselectPiece");
                 gameManager.DeselectPiece();
             }
             else
@@ -61,6 +62,13 @@ public class Tile : MonoBehaviour
     public bool IsTileOccupied()
     {
         return IsOccupied;
+    }
+
+    public Piece GetPiece()
+    {
+        if (occupyingPiece == null)
+            Debug.Log("occupyingPiece = null");
+        return occupyingPiece;
     }
 
     public void Highlight()

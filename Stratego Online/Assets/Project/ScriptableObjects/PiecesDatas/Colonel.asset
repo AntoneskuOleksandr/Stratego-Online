@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d8f50512121c414ca3f15b4a82a90c1, type: 3}
   m_Name: Colonel
   m_EditorClassIdentifier: 
+  Prefab: {fileID: 8650305047087445927, guid: f83dc131087e8f442a4d5821ac4de808, type: 3}
   Name: Colonel
   Rank: 8
   Count: 2

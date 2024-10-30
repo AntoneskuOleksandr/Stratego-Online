@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d8f50512121c414ca3f15b4a82a90c1, type: 3}
   m_Name: Spy
   m_EditorClassIdentifier: 
+  Prefab: {fileID: 7785517446339945087, guid: c15300c8e03d10e49b3d4c47cc5cb7a2, type: 3}
   Name: Spy
   Rank: 1
   Count: 1

@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d8f50512121c414ca3f15b4a82a90c1, type: 3}
   m_Name: Lieutenant
   m_EditorClassIdentifier: 
+  Prefab: {fileID: 8767036481301013288, guid: 0b012e57c1025a14899b322d9e11c78d, type: 3}
   Name: Lieutenant
   Rank: 5
   Count: 4

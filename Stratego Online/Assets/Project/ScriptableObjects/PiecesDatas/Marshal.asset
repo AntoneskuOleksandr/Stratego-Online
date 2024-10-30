@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d8f50512121c414ca3f15b4a82a90c1, type: 3}
   m_Name: Marshal
   m_EditorClassIdentifier: 
+  Prefab: {fileID: 2379489192737881584, guid: 6a510eeeab9a9854fb78a5264d2ee79f, type: 3}
   Name: Marshall
   Rank: 10
   Count: 1

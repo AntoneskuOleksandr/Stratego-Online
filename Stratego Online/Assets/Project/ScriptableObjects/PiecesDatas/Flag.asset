@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d8f50512121c414ca3f15b4a82a90c1, type: 3}
   m_Name: Flag
   m_EditorClassIdentifier: 
+  Prefab: {fileID: 4972632220765502500, guid: 386dbaee4a71f854a89177d7bab81e69, type: 3}
   Name: Flag
   Rank: 0
   Count: 1

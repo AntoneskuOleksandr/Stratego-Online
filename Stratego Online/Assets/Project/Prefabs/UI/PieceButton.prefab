@@ -318,11 +318,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 27acf12c7f4deb145b3e73501d240cc2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  icon: {fileID: 5861984787042441747}
-  nameText: {fileID: 7492929079699005478}
-  rankText: {fileID: 6812993275073492528}
-  countText: {fileID: 2302367378985359686}
-  button: {fileID: 8915988696601953865}
+  pieceIcon: {fileID: 5861984787042441747}
+  pieceNameText: {fileID: 7492929079699005478}
+  pieceRankText: {fileID: 6812993275073492528}
+  pieceCountText: {fileID: 2302367378985359686}
+  Button: {fileID: 8915988696601953865}
 --- !u!114 &8022784218747301416
 MonoBehaviour:
   m_ObjectHideFlags: 0

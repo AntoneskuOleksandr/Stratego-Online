@@ -23,7 +23,7 @@ public class BoardManager : MonoBehaviour, IBoardManager
             for (int x = 0; x < tiles.GetLength(0); x++)
             {
                 Tile tileComponent = tiles[x, y].GetComponent<Tile>();
-                tileComponent.Initialize(gameManager, config.tileColorHighlighted);
+                tileComponent.Initialize(gameManager, config.TileColorHighlighted);
             }
         }
     }

@@ -6,14 +6,9 @@ public class GameManager : MonoBehaviour, IGameManager
     private Piece selectedPiece;
     private IBoardManager boardManager;
 
-    public void Initialize(IBoardManager boardManager)
+    public void Initialize(IBoardManager boardManager, UIManager uiManager, ConfigManager config)
     {
         this.boardManager = boardManager;
-    }
-
-    private void Start()
-    {
-        boardManager.GenerateBoard(this);
     }
 
     public Piece GetSelectedPiece()
@@ -62,5 +57,10 @@ public class GameManager : MonoBehaviour, IGameManager
             }
         }
         return false;
+    }
+
+    public void SelectPiece(PieceData pieceData)
+    {
+        throw new System.NotImplementedException();
     }
 }

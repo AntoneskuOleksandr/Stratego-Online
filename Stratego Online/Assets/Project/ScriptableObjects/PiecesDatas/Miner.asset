@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d8f50512121c414ca3f15b4a82a90c1, type: 3}
   m_Name: Miner
   m_EditorClassIdentifier: 
+  Prefab: {fileID: 3204238640161806158, guid: dc4216b975a58e1498cf885d6917e1a8, type: 3}
   Name: Miner
   Rank: 3
   Count: 5

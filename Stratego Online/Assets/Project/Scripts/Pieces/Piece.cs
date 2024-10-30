@@ -4,10 +4,11 @@ using DG.Tweening;
 
 public abstract class Piece : MonoBehaviour
 {
+    public PieceData PieceData { get; private set; }
     protected Tile currentTile;
     private float originalYPosition;
     private float selectedYPosition;
-    protected IBoardManager boardManager;
+    private IBoardManager boardManager;
     private List<Tile> highlightedTiles = new List<Tile>();
 
     private void Awake()
@@ -16,8 +17,9 @@ public abstract class Piece : MonoBehaviour
         selectedYPosition = originalYPosition + 0.5f;
     }
 
-    public void Initialize(Tile startTile, IBoardManager boardManager)
+    public void Initialize(Tile startTile, IBoardManager boardManager, PieceData pieceData)
     {
+        this.PieceData = pieceData;
         this.boardManager = boardManager;
         currentTile = startTile;
         currentTile.PlacePiece(this);

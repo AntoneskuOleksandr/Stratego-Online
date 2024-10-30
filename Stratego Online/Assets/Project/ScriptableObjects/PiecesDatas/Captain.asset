@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d8f50512121c414ca3f15b4a82a90c1, type: 3}
   m_Name: Captain
   m_EditorClassIdentifier: 
+  Prefab: {fileID: 6922375304851889608, guid: 740779156152b43418119c7183f8dcdd, type: 3}
   Name: Captain
   Rank: 6
   Count: 4

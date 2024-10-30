@@ -12,24 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 458546e8ef3140a41bd1d7abc7e3bb8d, type: 3}
   m_Name: ConfigManager
   m_EditorClassIdentifier: 
-  boardRows: 10
-  boardColumns: 10
-  tileSize: 1
-  tileMaterialLake: {fileID: 2100000, guid: bf9cce061d07be14a8d89d3d28185012, type: 2}
-  tileMaterialWhite: {fileID: 2100000, guid: 351be7203fbdacb46b778e2270ca7cf5, type: 2}
-  tileMaterialBlack: {fileID: 2100000, guid: d7cc20bea0765d941bf921a23dc9f34d, type: 2}
-  tileColorHighlighted: {r: 0.016202211, g: 1, b: 0, a: 0.5019608}
-  piecePrefabs:
-  - {fileID: 2379489192737881584, guid: 6a510eeeab9a9854fb78a5264d2ee79f, type: 3}
-  - {fileID: 4616628865154139444, guid: 7726a6febe4b02a4d9f250cfbf14848e, type: 3}
-  - {fileID: 8650305047087445927, guid: f83dc131087e8f442a4d5821ac4de808, type: 3}
-  - {fileID: 1858763746618417550, guid: 48f24b9c4df2cf54793b440ff20fdc3e, type: 3}
-  - {fileID: 6922375304851889608, guid: 740779156152b43418119c7183f8dcdd, type: 3}
-  - {fileID: 8767036481301013288, guid: 0b012e57c1025a14899b322d9e11c78d, type: 3}
-  - {fileID: 150746210627864821, guid: a3ae9eaa9ae6fcd4a9f870aa275492d6, type: 3}
-  - {fileID: 3204238640161806158, guid: dc4216b975a58e1498cf885d6917e1a8, type: 3}
-  - {fileID: 7228848378295833734, guid: 1f21763d537238b46bf040e960076263, type: 3}
-  - {fileID: 7785517446339945087, guid: c15300c8e03d10e49b3d4c47cc5cb7a2, type: 3}
-  - {fileID: 4072722188036522140, guid: 85813a9587a63c3488e32642db2a64b6, type: 3}
-  - {fileID: 4972632220765502500, guid: 386dbaee4a71f854a89177d7bab81e69, type: 3}
-  pieceCounts: 010000000100000002000000030000000400000004000000040000000500000008000000010000000600000001000000
+  BoardRows: 10
+  BoardColumns: 10
+  TileSize: 1
+  PiecesData:
+  - {fileID: 11400000, guid: 0496903cc4378d748b47228a6a322af4, type: 2}
+  - {fileID: 11400000, guid: be0fcc4609ede6e44a11af57d44f3b99, type: 2}
+  - {fileID: 11400000, guid: 8db1b9def93dcb7409a10f9e6f978cd1, type: 2}
+  - {fileID: 11400000, guid: a40342a495807c34095bb79f2836c986, type: 2}
+  - {fileID: 11400000, guid: bc7799893e85aa5489074af9806fb36d, type: 2}
+  - {fileID: 11400000, guid: 6a280b3fbc42934408701a82b7c62954, type: 2}
+  - {fileID: 11400000, guid: dc84779cf84b56547bc85dd9e84a023f, type: 2}
+  - {fileID: 11400000, guid: 84fd7e7235191404385fc30e6ad769e9, type: 2}
+  - {fileID: 11400000, guid: c5f282d0ff41aaa4490899ba1d2e1db4, type: 2}
+  - {fileID: 11400000, guid: 4498675a95e9ca14eabfe694eb440899, type: 2}
+  - {fileID: 11400000, guid: 995f5dd8bd358d647afde02ce856804c, type: 2}
+  - {fileID: 11400000, guid: 63288264c12a2e744b949ed4decf30ba, type: 2}
+  TileMaterialLake: {fileID: 2100000, guid: bf9cce061d07be14a8d89d3d28185012, type: 2}
+  TileMaterialWhite: {fileID: 2100000, guid: 351be7203fbdacb46b778e2270ca7cf5, type: 2}
+  TileMaterialBlack: {fileID: 2100000, guid: d7cc20bea0765d941bf921a23dc9f34d, type: 2}
+  TileColorHighlighted: {r: 0.07006621, g: 1, b: 0, a: 1}

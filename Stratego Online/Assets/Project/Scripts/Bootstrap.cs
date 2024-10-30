@@ -3,6 +3,7 @@ using UnityEngine;
 public class Bootstrap : MonoBehaviour
 {
     [SerializeField] private MonoBehaviour gameManagerBehaviour;
+    [SerializeField] private MonoBehaviour preGameManagerBehaviour;
     [SerializeField] private MonoBehaviour boardManagerBehaviour;
     [SerializeField] private BoardGenerator boardGenerator;
     [SerializeField] private ConfigManager configManager;
@@ -14,11 +15,16 @@ public class Bootstrap : MonoBehaviour
 
     private void Awake()
     {
-        gameManager = (IGameManager)gameManagerBehaviour;
+        gameManager = (IGameManager)preGameManagerBehaviour;
         boardManager = (IBoardManager)boardManagerBehaviour;
 
         boardManager.Initialize(boardGenerator, configManager);
-        gameManager.Initialize(boardManager);
-        uiManager.Initialize();
+        gameManager.Initialize(boardManager, uiManager, configManager);
+        uiManager.Initialize(gameManager, configManager);
+    }
+
+    private void StartGame()
+    {
+
     }
 }
