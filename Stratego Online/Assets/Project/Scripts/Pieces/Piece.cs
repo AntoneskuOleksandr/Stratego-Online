@@ -8,9 +8,8 @@ public abstract class Piece : MonoBehaviour
     protected Tile currentTile;
     private float originalYPosition;
     private float selectedYPosition;
-    private BoardManager boardManager;
+    private IBoardManager boardManager;
     private List<Tile> highlightedTiles = new List<Tile>();
-    public int PlayerId { get; private set; }
 
     private void Awake()
     {
@@ -18,34 +17,13 @@ public abstract class Piece : MonoBehaviour
         selectedYPosition = originalYPosition + 0.5f;
     }
 
-    public void Initialize(Tile startTile, BoardManager boardManager, PieceData pieceData, int playerId)
+    public void Initialize(Tile startTile, IBoardManager boardManager, PieceData pieceData)
     {
         this.PieceData = pieceData;
         this.boardManager = boardManager;
-        this.PlayerId = playerId;
         currentTile = startTile;
+        currentTile.PlacePiece(this);
         transform.position = startTile.Center;
-    }
-
-
-    public int GetRank()
-    {
-        return PieceData.Rank;
-    }
-
-    public string GetPieceType()
-    {
-        return PieceData.Name;
-    }
-
-    public Tile GetTile()
-    {
-        return currentTile;
-    }
-
-    public bool IsSpecialPiece()
-    {
-        return PieceData.Name == "Miner" || PieceData.Name == "Spy";
     }
 
     public void Select()
@@ -87,7 +65,7 @@ public abstract class Piece : MonoBehaviour
     protected List<Tile> GetFilteredMoves(Tile[,] allTiles)
     {
         List<Tile> possibleMoves = GetPossibleMoves(allTiles);
-        return possibleMoves.FindAll(tile => !tile.IsLake.Value);
+        return possibleMoves.FindAll(tile => !tile.IsLake);
     }
 
     private void HighlightMoves()
@@ -107,10 +85,5 @@ public abstract class Piece : MonoBehaviour
             tile.Unhighlight();
         }
         highlightedTiles.Clear();
-    }
-
-    private void OnDestroy()
-    {
-        UnhighlightMoves();
     }
 }

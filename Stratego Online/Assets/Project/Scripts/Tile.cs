@@ -1,97 +1,72 @@
-using Unity.Netcode;
 using UnityEngine;
 
-public class Tile : NetworkBehaviour
+public class Tile : MonoBehaviour
 {
-    public NetworkVariable<bool> IsOccupied = new NetworkVariable<bool>(false);
-    public NetworkVariable<Vector2Int> IndexInMatrix = new NetworkVariable<Vector2Int>();
-    public NetworkVariable<bool> IsLake = new NetworkVariable<bool>(false);
-
-    private Piece occupyingPiece;
-    private IGameManager gameManager;
-    private Material tileMaterial;
-    private Color originalColor;
-    private Color highlightedColor;
-
+    public bool IsOccupied { get; private set; }
     public Vector3 Center
     {
         get
         {
             return GetComponent<Renderer>().bounds.center;
         }
+        private set { }
     }
+    public Vector2Int IndexInMatrix;
+    public bool IsLake;
+    private Piece occupyingPiece;
+    private IGameManager gameManager;
+    private Material tileMaterial;
+    private Color originalColor;
+    private Color highlightedColor;
 
-    public void ServerInitialize(IGameManager gameManager, Vector2Int index, bool isLake)
+    public void Initialize(IGameManager gameManager, Color highlightedColor)
     {
         this.gameManager = gameManager;
-
-        if (IsServer)
-        {
-            IndexInMatrix.Value = index;
-            IsLake.Value = isLake;
-        }
-    }
-
-    public void ClientInitialize(IGameManager gameManager, Color highlightedColor, Material material)
-    {
-        this.gameManager = gameManager;
-
-        tileMaterial = material;
-        GetComponent<MeshRenderer>().material = tileMaterial;
-
+        tileMaterial = GetComponent<Renderer>().material;
         originalColor = tileMaterial.color;
         this.highlightedColor = highlightedColor;
     }
 
     private void OnMouseDown()
     {
-        if (IsOwner)
+        if (IsOccupied)
         {
-            if (IsOccupied.Value)
+            if (gameManager.GetSelectedPiece() == occupyingPiece)
             {
-                if (gameManager.GetSelectedPiece() == occupyingPiece)
-                {
-                    gameManager.DeselectPiece();
-                }
-                else if (gameManager.GetSelectedPiece() == null)
-                {
-                    gameManager.SelectPiece(occupyingPiece);
-                }
-                else
-                {
-                    gameManager.TryToMoveSelectedPieceTo(this);
-                }
+                gameManager.DeselectPiece();
             }
             else
             {
-                gameManager.TryToMoveSelectedPieceTo(this);
+                gameManager.SelectPiece(occupyingPiece);
             }
+        }
+        else
+        {
+            gameManager.TryToMoveSelectedPieceTo(this);
         }
     }
 
     public void PlacePiece(Piece piece)
     {
         occupyingPiece = piece;
-        IsOccupied.Value = true;
-    }
-
-    public void SetPiece(Piece piece)
-    {
-        if (IsServer)
-        {
-            occupyingPiece = piece;
-            IsOccupied.Value = true;
-        }
+        IsOccupied = true;
     }
 
     public void RemovePiece()
     {
         occupyingPiece = null;
-        IsOccupied.Value = false;
+        IsOccupied = false;
+    }
+
+    public bool IsTileOccupied()
+    {
+        return IsOccupied;
     }
 
     public Piece GetPiece()
     {
+        if (occupyingPiece == null)
+            Debug.Log("occupyingPiece = null");
         return occupyingPiece;
     }
 
@@ -105,18 +80,8 @@ public class Tile : NetworkBehaviour
         tileMaterial.color = originalColor;
     }
 
-    public void SetMaterial(Material material)
+    public void SetGameManager(IGameManager newGameManager)
     {
-        if (tileMaterial != material)
-        {
-            tileMaterial = material;
-            GetComponent<MeshRenderer>().material = tileMaterial;
-            originalColor = tileMaterial.color;
-        }
-    }
-
-    public void SetGameManager(IGameManager gameManager)
-    {
-        this.gameManager = gameManager;
+        this.gameManager = newGameManager;
     }
 }

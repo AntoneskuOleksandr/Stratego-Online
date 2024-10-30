@@ -1,12 +1,10 @@
 using System.Linq;
-using Unity.Netcode;
 using UnityEngine;
 
 public class BoardGenerator : MonoBehaviour
 {
     private ConfigManager config;
     private GameObject[,] tiles;
-    public GameObject tilePrefab;
 
     public void Initialize(ConfigManager config)
     {
@@ -15,10 +13,8 @@ public class BoardGenerator : MonoBehaviour
 
     public GameObject[,] GenerateBoard()
     {
-        Debug.Log("Start Generating Board");
         int tileCountX = config.BoardRows;
         int tileCountY = config.BoardColumns;
-
         tiles = new GameObject[tileCountX, tileCountY];
 
         for (int y = 0; y < tileCountY; y++)
@@ -28,7 +24,7 @@ public class BoardGenerator : MonoBehaviour
                 if (IsLakeTile(x, y))
                 {
                     tiles[x, y] = GenerateSingleTile(config.TileSize, x, y, LayerMask.NameToLayer("Lake"), config.TileMaterialLake);
-                    tiles[x, y].GetComponent<Tile>().IsLake.Value = true;
+                    tiles[x, y].GetComponent<Tile>().IsLake = true;
                 }
                 else
                 {
@@ -36,7 +32,6 @@ public class BoardGenerator : MonoBehaviour
                 }
             }
         }
-        Debug.Log("Board Generated");
         return tiles;
     }
 
@@ -53,29 +48,34 @@ public class BoardGenerator : MonoBehaviour
         return lakeTiles.Contains(new Vector2Int(x, y));
     }
 
+
     private GameObject GenerateSingleTile(float tileSize, int x, int y, LayerMask layer, Material material)
     {
-        GameObject tileObject = Instantiate(tilePrefab);
-        tileObject.name = string.Format("X:{0}, Y:{1}", x, y);
+        GameObject tileObject = new GameObject(string.Format("X:{0}, Y:{1}", x, y));
+        tileObject.transform.parent = transform;
+        tileObject.transform.localPosition = new Vector3(x * tileSize, 0f, y * tileSize);
 
-        MeshRenderer renderer = tileObject.GetComponent<MeshRenderer>();
-        if (renderer != null)
-        {
-            renderer.material = material;
-        }
+        Mesh mesh = new Mesh();
+        tileObject.AddComponent<MeshFilter>().mesh = mesh;
+        tileObject.AddComponent<MeshRenderer>().material = material;
+
+        Vector3[] vertices = new Vector3[4];
+        vertices[0] = new Vector3(0, 0, 0);
+        vertices[1] = new Vector3(0, 0, tileSize);
+        vertices[2] = new Vector3(tileSize, 0, 0);
+        vertices[3] = new Vector3(tileSize, 0, tileSize);
+
+        int[] tris = new int[] { 0, 1, 2, 1, 3, 2 };
+
+        mesh.vertices = vertices;
+        mesh.triangles = tris;
+        mesh.RecalculateNormals();
 
         tileObject.layer = layer;
-
-        NetworkObject networkObject = tileObject.GetComponent<NetworkObject>();
-        if (networkObject != null)
-        {
-            networkObject.Spawn(true);
-        }
-
-        tileObject.transform.parent = this.transform;
-        tileObject.transform.localPosition = new Vector3(x * tileSize, 0f, y * tileSize);
+        tileObject.AddComponent<BoxCollider>();
+        tileObject.AddComponent<Tile>();
+        tileObject.GetComponent<Tile>().IndexInMatrix = new Vector2Int(x, y);
 
         return tileObject;
     }
-
 }
