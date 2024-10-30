@@ -6,24 +6,27 @@ public class UIManager : MonoBehaviour
 {
     [SerializeField] private GameObject buttonPrefab;
     [SerializeField] private Button readyButton;
-    [SerializeField] Transform buttonContainer;
+    [SerializeField] private Button randomPlacementButton;
+    [SerializeField] private Transform buttonContainer;
     private Dictionary<string, int> pieceCounts = new Dictionary<string, int>();
     private List<PieceData> originalPiecesData;
     private Dictionary<string, PieceButton> pieceButtons = new Dictionary<string, PieceButton>();
     private PieceData selectedPiece;
     private IGameManager gameManager;
 
-    public void Initialize(IGameManager gameManager, ConfigManager config)
+    public void Initialize(IGameManager gameManager, ConfigManager config, PiecePlacementManager piecePlacementManager)
     {
         this.gameManager = gameManager;
         originalPiecesData = config.PiecesData;
         GenerateButtons();
-
         readyButton.onClick.AddListener(() =>
         {
             gameManager.StartGame();
             HideUI();
         });
+        randomPlacementButton.onClick.AddListener(piecePlacementManager.PlacePiecesRandomly);
+        readyButton.interactable = false;
+        CheckReadyButtonStatus();
     }
 
     private void GenerateButtons()
@@ -36,7 +39,6 @@ public class UIManager : MonoBehaviour
             pieceButton.SetPieceData(pieceData, pieceData.Count);
             pieceButtons[pieceData.Name] = pieceButton;
             pieceCounts[pieceData.Name] = pieceData.Count;
-
             pieceButton.Button.onClick.AddListener(() =>
             {
                 OnPieceButtonClick(pieceData);
@@ -63,6 +65,7 @@ public class UIManager : MonoBehaviour
         {
             pieceCounts[pieceName] = count;
             pieceButtons[pieceName].UpdatePieceCount(count);
+            CheckReadyButtonStatus();
         }
     }
 
@@ -84,5 +87,21 @@ public class UIManager : MonoBehaviour
     private void HideUI()
     {
         this.gameObject.SetActive(false);
+    }
+
+    private void CheckReadyButtonStatus()
+    {
+        bool allPiecesPlaced = true;
+
+        foreach (var count in pieceCounts.Values)
+        {
+            if (count > 0)
+            {
+                allPiecesPlaced = false;
+                break;
+            }
+        }
+
+        readyButton.interactable = allPiecesPlaced;
     }
 }

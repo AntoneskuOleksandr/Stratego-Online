@@ -6,28 +6,32 @@ public class PiecePlacementManager : MonoBehaviour
 {
     private IBoardManager boardManager;
     private ConfigManager configManager;
-    private Dictionary<string, int> pieceCounts;
+    private Dictionary<string, int> pieceCounts = new Dictionary<string, int>();
+    private UIManager uiManager;
 
-    public void Initialize(IBoardManager boardManager, ConfigManager configManager)
+    public void Initialize(IBoardManager boardManager, ConfigManager configManager, UIManager uiManager)
     {
         this.boardManager = boardManager;
         this.configManager = configManager;
+        this.uiManager = uiManager;
 
-        pieceCounts = configManager.PiecesData.ToDictionary(pieceData => pieceData.Name, pieceData => pieceData.Count);
+        foreach (var pieceData in configManager.PiecesData)
+        {
+            pieceCounts[pieceData.Name] = pieceData.Count;
+        }
     }
 
     public void PlacePiecesRandomly()
     {
         foreach (var pieceData in configManager.PiecesData)
         {
-            int pieceCount = pieceCounts[pieceData.Name];
-
-            for (int j = 0; j < pieceCount; j++)
+            for (int j = 0; j < pieceCounts[pieceData.Name];)
             {
                 Tile randomTile = GetRandomEmptyTile();
                 if (randomTile != null)
                 {
                     SpawnPieceInTile(pieceData.Prefab, pieceData, randomTile);
+                    uiManager.UpdatePieceCount(pieceData.Name, pieceCounts[pieceData.Name]);
                 }
                 else
                 {

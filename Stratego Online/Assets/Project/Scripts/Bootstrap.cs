@@ -7,6 +7,7 @@ public class Bootstrap : MonoBehaviour
     [SerializeField] private MonoBehaviour boardManagerBehaviour;
     [SerializeField] private BoardGenerator boardGenerator;
     [SerializeField] private ConfigManager configManager;
+    [SerializeField] private PiecePlacementManager piecePlacementManager;
     [SerializeField] private UIManager uiManager;
 
     private IGameManager preGameManager;
@@ -20,9 +21,9 @@ public class Bootstrap : MonoBehaviour
         boardManager = (IBoardManager)boardManagerBehaviour;
 
         boardManager.Initialize(boardGenerator, configManager);
-        uiManager.Initialize(preGameManager, configManager);
+        uiManager.Initialize(preGameManager, configManager, piecePlacementManager);
+        piecePlacementManager.Initialize(boardManager, configManager, uiManager);
 
-        // Подписываемся на событие OnStartGame
         var preGameManagerScript = preGameManagerBehaviour as PreGameManager;
         if (preGameManagerScript != null)
         {
