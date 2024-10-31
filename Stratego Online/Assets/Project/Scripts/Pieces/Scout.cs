@@ -43,18 +43,20 @@ public class Scout : Piece
             return false;
         }
 
-        if (tile.IsOccupied && tile.GetPiece().PlayerId != PlayerId)
+        if (tile.IsOccupied)
         {
-            possibleMoves.Add(tile);
-            return false;
+            if (tile.GetPiece().PlayerId == PlayerId)
+            {
+                return false;
+            }
+            else
+            {
+                possibleMoves.Add(tile);
+                return false;
+            }
         }
 
-        if (!tile.IsOccupied)
-        {
-            possibleMoves.Add(tile);
-        }
-
+        possibleMoves.Add(tile);
         return true;
     }
-
 }
