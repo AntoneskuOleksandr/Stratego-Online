@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Bootstrap : MonoBehaviour
 {
@@ -9,12 +10,18 @@ public class Bootstrap : MonoBehaviour
     [SerializeField] private ConfigManager configManager;
     [SerializeField] private PiecePlacementManager piecePlacementManager;
     [SerializeField] private UIManager uiManager;
+    [SerializeField] private Button button;
 
     private IGameManager preGameManager;
     private IGameManager gameManager;
     private IBoardManager boardManager;
 
     private void Awake()
+    {
+        button.onClick.AddListener(Initialize);
+    }
+
+    private void Initialize()
     {
         preGameManager = (IGameManager)preGameManagerBehaviour;
         gameManager = (IGameManager)gameManagerBehaviour;

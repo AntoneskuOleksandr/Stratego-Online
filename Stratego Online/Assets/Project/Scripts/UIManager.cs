@@ -27,8 +27,8 @@ public class UIManager : MonoBehaviour
         });
         randomPlacementButton.onClick.AddListener(piecePlacementManager.PlacePiecesRandomly);
         mirrorPlacementButton.onClick.AddListener(piecePlacementManager.MirrorPlacePiecesRandomly);
-        readyButton.interactable = false;
-        CheckReadyButtonStatus();
+        //readyButton.interactable = false;
+        //CheckReadyButtonStatus();
     }
 
     private void GenerateButtons()

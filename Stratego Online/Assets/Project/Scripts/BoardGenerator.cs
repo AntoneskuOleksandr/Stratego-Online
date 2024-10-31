@@ -1,8 +1,10 @@
 using System.Linq;
+using Unity.Netcode;
 using UnityEngine;
 
 public class BoardGenerator : MonoBehaviour
 {
+    [SerializeField] private GameObject tilePrefab;
     private ConfigManager config;
     private GameObject[,] tiles;
 
@@ -48,16 +50,19 @@ public class BoardGenerator : MonoBehaviour
         return lakeTiles.Contains(new Vector2Int(x, y));
     }
 
-
     private GameObject GenerateSingleTile(float tileSize, int x, int y, LayerMask layer, Material material)
     {
-        GameObject tileObject = new GameObject(string.Format("X:{0}, Y:{1}", x, y));
+        GameObject tileObject = Instantiate(tilePrefab, new Vector3(x * tileSize, 0f, y * tileSize), Quaternion.identity, transform);
+        tileObject.name = string.Format("X:{0}, Y:{1}", x, y);
         tileObject.transform.parent = transform;
-        tileObject.transform.localPosition = new Vector3(x * tileSize, 0f, y * tileSize);
 
-        Mesh mesh = new Mesh();
-        tileObject.AddComponent<MeshFilter>().mesh = mesh;
-        tileObject.AddComponent<MeshRenderer>().material = material;
+        Mesh mesh = tileObject.GetComponent<MeshFilter>().mesh;
+        if (mesh == null)
+        {
+            mesh = new Mesh();
+            tileObject.GetComponent<MeshFilter>().mesh = mesh;
+        }
+        tileObject.GetComponent<MeshRenderer>().material = material;
 
         Vector3[] vertices = new Vector3[4];
         vertices[0] = new Vector3(0, 0, 0);
@@ -66,15 +71,19 @@ public class BoardGenerator : MonoBehaviour
         vertices[3] = new Vector3(tileSize, 0, tileSize);
 
         int[] tris = new int[] { 0, 1, 2, 1, 3, 2 };
-
         mesh.vertices = vertices;
         mesh.triangles = tris;
         mesh.RecalculateNormals();
 
         tileObject.layer = layer;
-        tileObject.AddComponent<BoxCollider>();
-        tileObject.AddComponent<Tile>();
-        tileObject.GetComponent<Tile>().IndexInMatrix = new Vector2Int(x, y);
+
+        Tile tileComponent = tileObject.GetComponent<Tile>();
+        if (tileComponent != null)
+        {
+            tileComponent.IndexInMatrix = new Vector2Int(x, y);
+        }
+
+        Debug.Log("GenerateSingleTile {" + x + "};{" + y + "}");
 
         return tileObject;
     }

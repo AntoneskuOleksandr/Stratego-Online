@@ -10,7 +10,7 @@ public abstract class Piece : MonoBehaviour
     private float selectedYPosition;
     private IBoardManager boardManager;
     private List<Tile> highlightedTiles = new List<Tile>();
-    public int PlayerId { get; private set; }
+    public ulong PlayerId { get; private set; }
 
     private void Awake()
     {
@@ -18,7 +18,7 @@ public abstract class Piece : MonoBehaviour
         selectedYPosition = originalYPosition + 0.5f;
     }
 
-    public void Initialize(Tile startTile, IBoardManager boardManager, PieceData pieceData, int playerId)
+    public void Initialize(Tile startTile, IBoardManager boardManager, PieceData pieceData, ulong playerId)
     {
         this.PieceData = pieceData;
         this.boardManager = boardManager;

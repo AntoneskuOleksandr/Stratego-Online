@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Netcode;
+using Unity.Netcode.Components;
 using UnityEngine;
 
 public class PiecePlacementManager : MonoBehaviour
@@ -59,21 +61,23 @@ public class PiecePlacementManager : MonoBehaviour
         }
     }
 
-    private void SpawnPieceInTile(GameObject piecePrefab, PieceData pieceData, Tile tile, int playerId)
+    private void SpawnPieceInTile(GameObject piecePrefab, PieceData pieceData, Tile tile, ulong playerId)
     {
         GameObject pieceObject = Instantiate(piecePrefab, tile.transform.position, Quaternion.identity);
         Piece piece = pieceObject.GetComponent<Piece>();
         piece.Initialize(tile, boardManager, pieceData, playerId);
+        piece.gameObject.GetComponent<NetworkObject>().Spawn(true);
         tile.PlacePiece(piece);
         pieceCounts[pieceData.Name]--;
     }
 
 
-    private void SpawnPieceInMirroredTile(GameObject piecePrefab, PieceData pieceData, Tile tile, int playerId)
+    private void SpawnPieceInMirroredTile(GameObject piecePrefab, PieceData pieceData, Tile tile, ulong playerId)
     {
         GameObject pieceObject = Instantiate(piecePrefab, tile.transform.position, Quaternion.Euler(0, 180, 0));
         Piece piece = pieceObject.GetComponent<Piece>();
         piece.Initialize(tile, boardManager, pieceData, playerId);
+        piece.gameObject.GetComponent<NetworkObject>().Spawn(true);
         tile.PlacePiece(piece);
         pieceCounts[pieceData.Name]--;
     }

@@ -1,7 +1,8 @@
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour, IGameManager
+public class GameManager : NetworkBehaviour, IGameManager
 {
     private Piece selectedPiece;
     private IBoardManager boardManager;
@@ -28,6 +29,12 @@ public class GameManager : MonoBehaviour, IGameManager
 
     public void SelectPiece(Piece piece)
     {
+        if (piece.PlayerId != NetworkManager.LocalClientId)
+        {
+            Debug.Log("Это не ваша фигура.");
+            return;
+        }
+
         if (selectedPiece != null)
         {
             selectedPiece.Deselect();
@@ -47,19 +54,27 @@ public class GameManager : MonoBehaviour, IGameManager
 
     public void TryToMoveSelectedPieceTo(Tile tile)
     {
-        if (CanMove(tile))
+        if (selectedPiece != null && selectedPiece.PlayerId == NetworkManager.LocalClientId)
         {
-            if (tile.IsOccupied)
+            if (CanMove(tile))
             {
-                ResolveBattle(selectedPiece, selectedPiece.GetTile(), tile);
+                if (tile.IsOccupied)
+                {
+                    ResolveBattle(selectedPiece, selectedPiece.GetTile(), tile);
+                }
+                else
+                {
+                    selectedPiece.MoveToTile(tile);
+                }
             }
-            else
-            {
-                selectedPiece.MoveToTile(tile);
-            }
+            DeselectPiece();
         }
-        DeselectPiece();
+        else
+        {
+            Debug.Log("Вы не можете перемещать чужую фигуру.");
+        }
     }
+
 
     public void ResolveBattle(Piece attacker, Tile attackerTile, Tile defenderTile)
     {
