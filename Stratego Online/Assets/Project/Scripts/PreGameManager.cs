@@ -48,7 +48,7 @@ public class PreGameManager : MonoBehaviour, IGameManager
             {
                 GameObject pieceObject = Instantiate(selectedPiece.Prefab, tile.transform.position, Quaternion.identity);
                 Piece placedPiece = pieceObject.GetComponent<Piece>();
-                placedPiece.Initialize(tile, boardManager, selectedPiece);
+                placedPiece.Initialize(tile, boardManager, selectedPiece, 0);
                 tile.PlacePiece(placedPiece);
 
                 int newCount = uiManager.GetPieceCurrentCount(selectedPiece.Name) - 1;

@@ -38,11 +38,23 @@ public class Scout : Piece
 
     private bool AddTileIfValid(Tile tile, List<Tile> possibleMoves)
     {
-        if (tile.IsLake || tile.IsOccupied)
+        if (tile.IsLake)
         {
             return false;
         }
-        possibleMoves.Add(tile);
+
+        if (tile.IsOccupied && tile.GetPiece().PlayerId != PlayerId)
+        {
+            possibleMoves.Add(tile);
+            return false;
+        }
+
+        if (!tile.IsOccupied)
+        {
+            possibleMoves.Add(tile);
+        }
+
         return true;
     }
+
 }

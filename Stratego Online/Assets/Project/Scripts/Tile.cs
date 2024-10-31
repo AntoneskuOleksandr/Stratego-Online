@@ -35,9 +35,13 @@ public class Tile : MonoBehaviour
             {
                 gameManager.DeselectPiece();
             }
-            else
+            else if (gameManager.GetSelectedPiece() == null)
             {
                 gameManager.SelectPiece(occupyingPiece);
+            }
+            else
+            {
+                gameManager.TryToMoveSelectedPieceTo(this);
             }
         }
         else
@@ -45,6 +49,7 @@ public class Tile : MonoBehaviour
             gameManager.TryToMoveSelectedPieceTo(this);
         }
     }
+
 
     public void PlacePiece(Piece piece)
     {
@@ -58,16 +63,14 @@ public class Tile : MonoBehaviour
         IsOccupied = false;
     }
 
-    public bool IsTileOccupied()
-    {
-        return IsOccupied;
-    }
-
     public Piece GetPiece()
     {
-        if (occupyingPiece == null)
-            Debug.Log("occupyingPiece = null");
         return occupyingPiece;
+    }
+
+    public void SetGameManager(IGameManager newGameManager)
+    {
+        this.gameManager = newGameManager;
     }
 
     public void Highlight()
@@ -78,10 +81,5 @@ public class Tile : MonoBehaviour
     public void Unhighlight()
     {
         tileMaterial.color = originalColor;
-    }
-
-    public void SetGameManager(IGameManager newGameManager)
-    {
-        this.gameManager = newGameManager;
     }
 }

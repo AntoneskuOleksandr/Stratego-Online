@@ -21,9 +21,12 @@ public abstract class SingleStepPiece : Piece
         if (x >= 0 && y >= 0 && x < allTiles.GetLength(0) && y < allTiles.GetLength(1))
         {
             Tile tile = allTiles[x, y];
-            if (!tile.IsLake && !tile.IsOccupied)
+            if (!tile.IsLake)
             {
-                possibleMoves.Add(tile);
+                if (!tile.IsOccupied || (tile.IsOccupied && tile.GetPiece().PlayerId != PlayerId))
+                {
+                    possibleMoves.Add(tile);
+                }
             }
         }
     }
