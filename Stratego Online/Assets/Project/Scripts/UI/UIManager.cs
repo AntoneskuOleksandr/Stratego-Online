@@ -7,7 +7,6 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject buttonPrefab;
     [SerializeField] private Button readyButton;
     [SerializeField] private Button randomPlacementButton;
-    [SerializeField] private Button mirrorPlacementButton;
     [SerializeField] private Transform buttonContainer;
     private Dictionary<string, int> pieceCounts = new Dictionary<string, int>();
     private List<PieceData> originalPiecesData;
@@ -26,7 +25,6 @@ public class UIManager : MonoBehaviour
             HideUI();
         });
         randomPlacementButton.onClick.AddListener(piecePlacementManager.PlacePiecesRandomly);
-        mirrorPlacementButton.onClick.AddListener(piecePlacementManager.MirrorPlacePiecesRandomly);
         readyButton.interactable = false;
         CheckReadyButtonStatus();
     }
