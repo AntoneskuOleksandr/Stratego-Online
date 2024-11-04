@@ -1,8 +1,9 @@
+using Unity.Netcode;
 using UnityEngine;
 
-public class Tile : MonoBehaviour
+public class Tile : NetworkBehaviour
 {
-    public bool IsOccupied { get; private set; }
+    public NetworkVariable<bool> IsOccupied = new NetworkVariable<bool>(false);
     public Vector3 Center
     {
         get
@@ -29,38 +30,49 @@ public class Tile : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if (IsOccupied)
+        if (IsOwner)
         {
-            if (gameManager.GetSelectedPiece() == occupyingPiece)
+            if (IsOccupied.Value)
             {
-                gameManager.DeselectPiece();
-            }
-            else if (gameManager.GetSelectedPiece() == null)
-            {
-                gameManager.SelectPiece(occupyingPiece);
+                if (gameManager.GetSelectedPiece() == occupyingPiece)
+                {
+                    gameManager.DeselectPiece();
+                }
+                else if (gameManager.GetSelectedPiece() == null)
+                {
+                    gameManager.SelectPiece(occupyingPiece);
+                }
+                else
+                {
+                    gameManager.TryToMoveSelectedPieceTo(this);
+                }
             }
             else
             {
                 gameManager.TryToMoveSelectedPieceTo(this);
             }
         }
-        else
-        {
-            gameManager.TryToMoveSelectedPieceTo(this);
-        }
     }
-
 
     public void PlacePiece(Piece piece)
     {
         occupyingPiece = piece;
-        IsOccupied = true;
+        IsOccupied.Value = true;
+    }
+
+    public void SetPiece(Piece piece)
+    {
+        if (IsServer)
+        {
+            occupyingPiece = piece;
+            IsOccupied.Value = true;
+        }
     }
 
     public void RemovePiece()
     {
         occupyingPiece = null;
-        IsOccupied = false;
+        IsOccupied.Value = false;
     }
 
     public Piece GetPiece()

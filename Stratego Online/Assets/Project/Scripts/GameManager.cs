@@ -49,7 +49,7 @@ public class GameManager : MonoBehaviour, IGameManager
     {
         if (CanMove(tile))
         {
-            if (tile.IsOccupied)
+            if (tile.IsOccupied.Value)
             {
                 ResolveBattle(selectedPiece, selectedPiece.GetTile(), tile);
             }

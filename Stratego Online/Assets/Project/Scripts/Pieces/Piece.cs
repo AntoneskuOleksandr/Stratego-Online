@@ -24,9 +24,9 @@ public abstract class Piece : MonoBehaviour
         this.boardManager = boardManager;
         this.PlayerId = playerId;
         currentTile = startTile;
-        currentTile.PlacePiece(this);
         transform.position = startTile.Center;
     }
+
 
     public int GetRank()
     {

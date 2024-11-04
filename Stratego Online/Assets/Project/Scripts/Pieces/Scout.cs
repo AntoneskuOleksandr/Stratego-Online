@@ -43,7 +43,7 @@ public class Scout : Piece
             return false;
         }
 
-        if (tile.IsOccupied)
+        if (tile.IsOccupied.Value)
         {
             if (tile.GetPiece().PlayerId == PlayerId)
             {

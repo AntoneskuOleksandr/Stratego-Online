@@ -1,10 +1,12 @@
+using Unity.Netcode;
 using UnityEngine;
 
-public class BoardManager : MonoBehaviour, IBoardManager
+public class BoardManager : NetworkBehaviour, IBoardManager
 {
     private BoardGenerator boardGenerator;
     private GameObject[,] tiles;
     private ConfigManager config;
+    private IGameManager gameManager;
 
     public void Initialize(BoardGenerator boardGenerator, ConfigManager config)
     {
@@ -16,6 +18,7 @@ public class BoardManager : MonoBehaviour, IBoardManager
 
     public void GenerateBoard(IGameManager gameManager)
     {
+        this.gameManager = gameManager;
         tiles = boardGenerator.GenerateBoard();
 
         for (int y = 0; y < tiles.GetLength(1); y++)
@@ -26,6 +29,47 @@ public class BoardManager : MonoBehaviour, IBoardManager
                 tileComponent.Initialize(gameManager, config.TileColorHighlighted);
             }
         }
+
+        GenerateBoardClientRpc();
+    }
+
+    [ServerRpc]
+    public void GenerateBoardServerRpc()
+    {
+        tiles = boardGenerator.GenerateBoard();
+
+        for (int y = 0; y < tiles.GetLength(1); y++)
+        {
+            for (int x = 0; x < tiles.GetLength(0); x++)
+            {
+                Tile tileComponent = tiles[x, y].GetComponent<Tile>();
+                tileComponent.Initialize(gameManager, config.TileColorHighlighted);
+            }
+        }
+
+        GenerateBoardClientRpc();
+    }
+
+    [ClientRpc]
+    private void GenerateBoardClientRpc()
+    {
+        for (int y = 0; y < tiles.GetLength(1); y++)
+        {
+            for (int x = 0; x < tiles.GetLength(0); x++)
+            {
+                Tile tileComponent = tiles[x, y].GetComponent<Tile>();
+                tileComponent.Initialize(gameManager, config.TileColorHighlighted);
+            }
+        }
+    }
+
+    public Tile GetTileAt(int x, int y)
+    {
+        if (x < 0 || x >= tiles.GetLength(0) || y < 0 || y >= tiles.GetLength(1))
+        {
+            return null;
+        }
+        return tiles[x, y].GetComponent<Tile>();
     }
 
     public Tile[,] GetAllTiles()

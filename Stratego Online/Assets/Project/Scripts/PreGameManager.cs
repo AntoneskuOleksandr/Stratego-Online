@@ -1,14 +1,14 @@
-using UnityEngine;
+using Unity.Netcode;
 using UnityEngine.Events;
+using UnityEngine;
 
-public class PreGameManager : MonoBehaviour, IGameManager
+public class PreGameManager : NetworkBehaviour, IGameManager
 {
     private IBoardManager boardManager;
     private UIManager uiManager;
     private PieceData selectedPiece;
     private Piece spawnedPiece;
     private ConfigManager config;
-    private bool isPlayerOne = true;
     private int currentPeaceCount = 1;
     public UnityEvent OnStartGame;
 
@@ -44,15 +44,35 @@ public class PreGameManager : MonoBehaviour, IGameManager
         {
             Tile tile = GetTileUnderMouse();
             currentPeaceCount = uiManager.GetPieceCurrentCount(selectedPiece.Name);
-            if (tile != null && !tile.IsOccupied && IsTileInPlayerHalf(tile) && currentPeaceCount > 0)
+            if (tile != null && !tile.IsOccupied.Value && currentPeaceCount > 0)
             {
-                GameObject pieceObject = Instantiate(selectedPiece.Prefab, tile.transform.position, Quaternion.identity);
-                Piece placedPiece = pieceObject.GetComponent<Piece>();
-                placedPiece.Initialize(tile, boardManager, selectedPiece, 0);
-                tile.PlacePiece(placedPiece);
+                PieceData pieceData = selectedPiece;
+                ulong clientId = NetworkManager.Singleton.LocalClientId;
+                CmdPlacePieceServerRpc(tile.IndexInMatrix.x, tile.IndexInMatrix.y, pieceData.Name, clientId);
+            }
+        }
+    }
 
-                int newCount = uiManager.GetPieceCurrentCount(selectedPiece.Name) - 1;
-                uiManager.UpdatePieceCount(selectedPiece.Name, newCount);
+    [ServerRpc(RequireOwnership = false)]
+    private void CmdPlacePieceServerRpc(int x, int y, string pieceName, ulong clientId)
+    {
+        Tile tile = boardManager.GetTileAt(x, y);
+        if (tile != null && !tile.IsOccupied.Value && IsTileInPlayerHalf(tile, clientId) && uiManager.GetPieceCurrentCount(pieceName) > 0)
+        {
+            PieceData pieceData = config.GetPieceDataByName(pieceName);
+            if (pieceData != null)
+            {
+                GameObject pieceObject = Instantiate(pieceData.Prefab, tile.transform.position, Quaternion.identity);
+                NetworkObject networkObject = pieceObject.GetComponent<NetworkObject>();
+                networkObject.Spawn(true);
+
+                Piece placedPiece = pieceObject.GetComponent<Piece>();
+                placedPiece.Initialize(tile, boardManager, pieceData, 0);
+
+                tile.SetPiece(placedPiece);
+
+                int newCount = uiManager.GetPieceCurrentCount(pieceName) - 1;
+                uiManager.UpdatePieceCount(pieceName, newCount);
 
                 if (newCount == 0)
                 {
@@ -62,16 +82,29 @@ public class PreGameManager : MonoBehaviour, IGameManager
         }
     }
 
-    private bool IsTileInPlayerHalf(Tile tile)
+
+    private bool IsTileInPlayerHalf(Tile tile, ulong clientId)
     {
         int maxRows = config.BoardRows;
-        return isPlayerOne ? tile.IndexInMatrix.y < maxRows / 2 - 1 : tile.IndexInMatrix.y >= maxRows / 2 + 1;
+        bool isClientOne = (clientId == 0); // например, если ID 0 - это первый игрок
+        return isClientOne ? tile.IndexInMatrix.y < maxRows / 2 : tile.IndexInMatrix.y >= maxRows / 2;
     }
+
 
     private void TryRemovePiece()
     {
         Tile tile = GetTileUnderMouse();
-        if (tile != null && tile.IsOccupied)
+        if (tile != null && tile.IsOccupied.Value)
+        {
+            CmdRemovePieceServerRpc(tile.IndexInMatrix.x, tile.IndexInMatrix.y);
+        }
+    }
+
+    [ServerRpc]
+    private void CmdRemovePieceServerRpc(int x, int y)
+    {
+        Tile tile = boardManager.GetTileAt(x, y);
+        if (tile != null && tile.IsOccupied.Value)
         {
             Piece piece = tile.GetPiece();
             if (piece != null)
@@ -114,7 +147,6 @@ public class PreGameManager : MonoBehaviour, IGameManager
 
     public void TryToMoveSelectedPieceTo(Tile tile)
     {
-        // ћожно оставить нереализованным, если это не нужно в PreGameManager
     }
 
     public void SelectPiece(PieceData pieceData)

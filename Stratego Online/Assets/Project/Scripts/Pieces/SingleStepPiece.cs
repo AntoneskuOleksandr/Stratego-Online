@@ -23,7 +23,7 @@ public abstract class SingleStepPiece : Piece
             Tile tile = allTiles[x, y];
             if (!tile.IsLake)
             {
-                if (!tile.IsOccupied || (tile.IsOccupied && tile.GetPiece().PlayerId != PlayerId))
+                if (!tile.IsOccupied.Value || (tile.IsOccupied.Value && tile.GetPiece().PlayerId != PlayerId))
                 {
                     possibleMoves.Add(tile);
                 }

@@ -13,4 +13,9 @@ public class ConfigManager : ScriptableObject
     public Material TileMaterialWhite;
     public Material TileMaterialBlack;
     public Color TileColorHighlighted;
+
+    public PieceData GetPieceDataByName(string name)
+    {
+        return PiecesData.Find(piece => piece.Name == name);
+    }
 }
