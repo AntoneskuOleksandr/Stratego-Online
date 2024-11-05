@@ -1,9 +1,11 @@
 using Unity.Netcode;
 using UnityEngine.Events;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PreGameManager : NetworkBehaviour, IGameManager
 {
+    [SerializeField] private Button GenerateBoardButton;
     private IBoardManager boardManager;
     private UIManager uiManager;
     private PieceData selectedPiece;
@@ -12,12 +14,20 @@ public class PreGameManager : NetworkBehaviour, IGameManager
     private int currentPeaceCount = 1;
     public UnityEvent OnStartGame;
 
+    private void Awake()
+    {
+        GenerateBoardButton.onClick.AddListener(() =>
+        {
+            boardManager.InitializeBoard(this);
+            GenerateBoardButton.gameObject.SetActive(false);
+        });
+    }
+
     public void Initialize(IBoardManager boardManager, UIManager uiManager, ConfigManager config)
     {
         this.boardManager = boardManager;
         this.uiManager = uiManager;
         this.config = config;
-        boardManager.GenerateBoard(this);
     }
 
     public void StartGame()
@@ -39,6 +49,9 @@ public class PreGameManager : NetworkBehaviour, IGameManager
 
     private void TryPlacePiece()
     {
+        if (uiManager == null)
+            return;
+
         selectedPiece = uiManager.GetSelectedPiece();
         if (selectedPiece != null)
         {
@@ -48,7 +61,7 @@ public class PreGameManager : NetworkBehaviour, IGameManager
             {
                 PieceData pieceData = selectedPiece;
                 ulong clientId = NetworkManager.Singleton.LocalClientId;
-                CmdPlacePieceServerRpc(tile.IndexInMatrix.x, tile.IndexInMatrix.y, pieceData.Name, clientId);
+                CmdPlacePieceServerRpc(tile.IndexInMatrix.Value.x, tile.IndexInMatrix.Value.y, pieceData.Name, clientId);
             }
         }
     }
@@ -57,9 +70,12 @@ public class PreGameManager : NetworkBehaviour, IGameManager
     private void CmdPlacePieceServerRpc(int x, int y, string pieceName, ulong clientId)
     {
         Tile tile = boardManager.GetTileAt(x, y);
+
+        Debug.Log(tile.IsOccupied.Value);
         if (tile != null && !tile.IsOccupied.Value && IsTileInPlayerHalf(tile, clientId) && uiManager.GetPieceCurrentCount(pieceName) > 0)
         {
             PieceData pieceData = config.GetPieceDataByName(pieceName);
+            Debug.Log(pieceData);
             if (pieceData != null)
             {
                 GameObject pieceObject = Instantiate(pieceData.Prefab, tile.transform.position, Quaternion.identity);
@@ -78,25 +94,39 @@ public class PreGameManager : NetworkBehaviour, IGameManager
                 {
                     uiManager.DeselectPiece();
                 }
+                Debug.Log(tile.IsOccupied.Value);
             }
         }
     }
 
-
     private bool IsTileInPlayerHalf(Tile tile, ulong clientId)
     {
+        Debug.Log(clientId);
         int maxRows = config.BoardRows;
-        bool isClientOne = (clientId == 0); // например, если ID 0 - это первый игрок
-        return isClientOne ? tile.IndexInMatrix.y < maxRows / 2 : tile.IndexInMatrix.y >= maxRows / 2;
-    }
 
+        if (clientId == 0)
+            if (tile.IndexInMatrix.Value.y < maxRows / 2 - 1)
+                return true;
+            else
+                return false;
+        else if (clientId == 1)
+            if (tile.IndexInMatrix.Value.y > maxRows / 2)
+                return true;
+            else
+                return false;
+        else
+        {
+            Debug.LogError("Something wrong with clientId");
+            return false;
+        }
+    }
 
     private void TryRemovePiece()
     {
         Tile tile = GetTileUnderMouse();
         if (tile != null && tile.IsOccupied.Value)
         {
-            CmdRemovePieceServerRpc(tile.IndexInMatrix.x, tile.IndexInMatrix.y);
+            CmdRemovePieceServerRpc(tile.IndexInMatrix.Value.x, tile.IndexInMatrix.Value.y);
         }
     }
 

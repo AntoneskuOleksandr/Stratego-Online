@@ -1,6 +1,8 @@
+using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class Bootstrap : MonoBehaviour
+public class Bootstrap : NetworkBehaviour
 {
     [SerializeField] private MonoBehaviour preGameManagerBehaviour;
     [SerializeField] private MonoBehaviour gameManagerBehaviour;
@@ -9,6 +11,8 @@ public class Bootstrap : MonoBehaviour
     [SerializeField] private ConfigManager configManager;
     [SerializeField] private PiecePlacementManager piecePlacementManager;
     [SerializeField] private UIManager uiManager;
+    [SerializeField] private CameraController cameraController;
+    [SerializeField] private Button InitializeAllButton;
 
     private IGameManager preGameManager;
     private IGameManager gameManager;
@@ -16,10 +20,22 @@ public class Bootstrap : MonoBehaviour
 
     private void Awake()
     {
+        InitializeAllButton.onClick.AddListener(() =>
+        {
+            InitializeClientRpc();
+            InitializeAllButton.gameObject.SetActive(false);
+        });
+    }
+
+    [ClientRpc]
+    private void InitializeClientRpc()
+    {
+        Debug.Log("InitializeBootstrap");
         preGameManager = (IGameManager)preGameManagerBehaviour;
         gameManager = (IGameManager)gameManagerBehaviour;
         boardManager = (IBoardManager)boardManagerBehaviour;
 
+        cameraController.Initialize();
         boardManager.Initialize(boardGenerator, configManager);
         uiManager.Initialize(preGameManager, configManager, piecePlacementManager);
         piecePlacementManager.Initialize(boardManager, configManager, uiManager);

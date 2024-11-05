@@ -52,7 +52,7 @@ public class PiecePlacementManager : MonoBehaviour
     private Tile GetRandomEmptyTile()
     {
         Tile[,] allTiles = boardManager.GetAllTiles();
-        Tile[] emptyTiles = System.Array.FindAll(allTiles.Cast<Tile>().ToArray(), tile => !tile.IsOccupied.Value && tile.IndexInMatrix.y < 4);
+        Tile[] emptyTiles = System.Array.FindAll(allTiles.Cast<Tile>().ToArray(), tile => !tile.IsOccupied.Value && tile.IndexInMatrix.Value.y < 4);
         if (emptyTiles.Length > 0)
         {
             return emptyTiles[Random.Range(0, emptyTiles.Length)];

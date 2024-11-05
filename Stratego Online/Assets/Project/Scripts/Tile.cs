@@ -4,26 +4,41 @@ using UnityEngine;
 public class Tile : NetworkBehaviour
 {
     public NetworkVariable<bool> IsOccupied = new NetworkVariable<bool>(false);
-    public Vector3 Center
-    {
-        get
-        {
-            return GetComponent<Renderer>().bounds.center;
-        }
-        private set { }
-    }
-    public Vector2Int IndexInMatrix;
-    public bool IsLake;
+    public NetworkVariable<Vector2Int> IndexInMatrix = new NetworkVariable<Vector2Int>();
+    public NetworkVariable<bool> IsLake = new NetworkVariable<bool>(false);
+
     private Piece occupyingPiece;
     private IGameManager gameManager;
     private Material tileMaterial;
     private Color originalColor;
     private Color highlightedColor;
 
-    public void Initialize(IGameManager gameManager, Color highlightedColor)
+    public Vector3 Center
+    {
+        get
+        {
+            return GetComponent<Renderer>().bounds.center;
+        }
+    }
+
+    public void ServerInitialize(IGameManager gameManager, Vector2Int index, bool isLake)
     {
         this.gameManager = gameManager;
-        tileMaterial = GetComponent<Renderer>().material;
+
+        if (IsServer)
+        {
+            IndexInMatrix.Value = index;
+            IsLake.Value = isLake;
+        }
+    }
+
+    public void ClientInitialize(IGameManager gameManager, Color highlightedColor, Material material)
+    {
+        this.gameManager = gameManager;
+
+        tileMaterial = material;
+        GetComponent<MeshRenderer>().material = tileMaterial;
+
         originalColor = tileMaterial.color;
         this.highlightedColor = highlightedColor;
     }
@@ -80,11 +95,6 @@ public class Tile : NetworkBehaviour
         return occupyingPiece;
     }
 
-    public void SetGameManager(IGameManager newGameManager)
-    {
-        this.gameManager = newGameManager;
-    }
-
     public void Highlight()
     {
         tileMaterial.color = Color.Lerp(originalColor, highlightedColor, 0.5f);
@@ -93,5 +103,20 @@ public class Tile : NetworkBehaviour
     public void Unhighlight()
     {
         tileMaterial.color = originalColor;
+    }
+
+    public void SetMaterial(Material material)
+    {
+        if (tileMaterial != material)
+        {
+            tileMaterial = material;
+            GetComponent<MeshRenderer>().material = tileMaterial;
+            originalColor = tileMaterial.color;
+        }
+    }
+
+    public void SetGameManager(IGameManager gameManager)
+    {
+        this.gameManager = gameManager;
     }
 }
