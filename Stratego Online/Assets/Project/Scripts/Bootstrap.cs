@@ -18,8 +18,11 @@ public class Bootstrap : NetworkBehaviour
     private IGameManager gameManager;
     private IBoardManager boardManager;
 
-    private void Awake()
+    private void Start()
     {
+        if (!IsHost)
+            InitializeAllButton.gameObject.SetActive(false);
+
         InitializeAllButton.onClick.AddListener(() =>
         {
             InitializeClientRpc();

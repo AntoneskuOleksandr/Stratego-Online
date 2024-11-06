@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,7 +25,11 @@ public class UIManager : MonoBehaviour
             gameManager.StartGame();
             HideUI();
         });
-        randomPlacementButton.onClick.AddListener(piecePlacementManager.PlacePiecesRandomly);
+        randomPlacementButton.onClick.AddListener(() =>
+        {
+            piecePlacementManager.RequestPlacePiecesRandomlyServerRpc(NetworkManager.Singleton.LocalClientId);
+            randomPlacementButton.gameObject.SetActive(false);
+        });
         readyButton.interactable = false;
         CheckReadyButtonStatus();
     }

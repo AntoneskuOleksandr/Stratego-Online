@@ -1,6 +1,6 @@
 using Unity.Netcode;
-using UnityEngine.Events;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class PreGameManager : NetworkBehaviour, IGameManager
@@ -14,8 +14,11 @@ public class PreGameManager : NetworkBehaviour, IGameManager
     private int currentPeaceCount = 1;
     public UnityEvent OnStartGame;
 
-    private void Awake()
+    private void Start()
     {
+        if (!IsHost)
+            GenerateBoardButton.gameObject.SetActive(false);
+
         GenerateBoardButton.onClick.AddListener(() =>
         {
             boardManager.InitializeBoard(this);
@@ -49,27 +52,33 @@ public class PreGameManager : NetworkBehaviour, IGameManager
 
     private void TryPlacePiece()
     {
+        Debug.Log(uiManager);
         if (uiManager == null)
             return;
 
         selectedPiece = uiManager.GetSelectedPiece();
+        Debug.Log(selectedPiece);
         if (selectedPiece != null)
         {
             Tile tile = GetTileUnderMouse();
+            Debug.Log(tile);
             currentPeaceCount = uiManager.GetPieceCurrentCount(selectedPiece.Name);
+            Debug.Log(currentPeaceCount);
+            Debug.Log(tile.IsOccupied.Value);
             if (tile != null && !tile.IsOccupied.Value && currentPeaceCount > 0)
             {
                 PieceData pieceData = selectedPiece;
                 ulong clientId = NetworkManager.Singleton.LocalClientId;
-                CmdPlacePieceServerRpc(tile.IndexInMatrix.Value.x, tile.IndexInMatrix.Value.y, pieceData.Name, clientId);
+                CmdPlacePieceServerRpc(tile.IndexInMatrix.Value, pieceData.Name, clientId);
             }
         }
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void CmdPlacePieceServerRpc(int x, int y, string pieceName, ulong clientId)
+    private void CmdPlacePieceServerRpc(Vector2Int tileIndex, string pieceName, ulong clientId)
     {
-        Tile tile = boardManager.GetTileAt(x, y);
+        Debug.Log("CmdPlacePieceServerRpc");
+        Tile tile = boardManager.GetTileAt(tileIndex.x, tileIndex.y);
 
         Debug.Log(tile.IsOccupied.Value);
         if (tile != null && !tile.IsOccupied.Value && IsTileInPlayerHalf(tile, clientId) && uiManager.GetPieceCurrentCount(pieceName) > 0)
@@ -84,7 +93,6 @@ public class PreGameManager : NetworkBehaviour, IGameManager
 
                 Piece placedPiece = pieceObject.GetComponent<Piece>();
                 placedPiece.Initialize(tile, boardManager, pieceData, 0);
-
                 tile.SetPiece(placedPiece);
 
                 int newCount = uiManager.GetPieceCurrentCount(pieceName) - 1;
@@ -94,7 +102,6 @@ public class PreGameManager : NetworkBehaviour, IGameManager
                 {
                     uiManager.DeselectPiece();
                 }
-                Debug.Log(tile.IsOccupied.Value);
             }
         }
     }
