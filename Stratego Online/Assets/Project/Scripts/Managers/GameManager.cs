@@ -4,11 +4,11 @@ using UnityEngine;
 public class GameManager : MonoBehaviour, IGameManager
 {
     private Piece selectedPiece;
-    private IBoardManager boardManager;
+    private BoardManager boardManager;
     private UIManager uiManager;
     private ConfigManager configManager;
 
-    public void Initialize(IBoardManager boardManager, UIManager uiManager, ConfigManager configManager)
+    public void Initialize(BoardManager boardManager, UIManager uiManager, ConfigManager configManager)
     {
         this.boardManager = boardManager;
         this.uiManager = uiManager;

@@ -69,9 +69,7 @@ public class BoardGenerator : MonoBehaviour
         NetworkObject networkObject = tileObject.GetComponent<NetworkObject>();
         if (networkObject != null)
         {
-            Debug.Log(networkObject.OwnerClientId);
             networkObject.Spawn(true);
-            Debug.Log(networkObject.NetworkObjectId);
         }
 
         tileObject.transform.parent = this.transform;

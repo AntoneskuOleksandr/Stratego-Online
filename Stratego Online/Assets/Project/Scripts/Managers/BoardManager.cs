@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class BoardManager : NetworkBehaviour, IBoardManager
+public class BoardManager : NetworkBehaviour
 {
+    public Dictionary<ulong, Dictionary<string, int>> pieceCountsByPlayer = new Dictionary<ulong, Dictionary<string, int>>();
     private BoardGenerator boardGenerator;
     private GameObject[,] tiles;
     private ConfigManager config;
@@ -14,6 +16,48 @@ public class BoardManager : NetworkBehaviour, IBoardManager
         this.boardGenerator = boardGenerator;
         this.config = config;
         boardGenerator.Initialize(config);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void InitializePieceCountsServerRpc()
+    {
+        ulong clientsCount = 1;
+
+        if (IsHost)
+            clientsCount = 2;
+
+
+        for (ulong i = 0; i < clientsCount; i++)
+        {
+            pieceCountsByPlayer[i] = new Dictionary<string, int>();
+            foreach (var pieceData in config.PiecesData)
+            {
+                pieceCountsByPlayer[i][pieceData.Name] = pieceData.Count;
+            }
+            Debug.Log("Pieces count initialized for client with id: " + i);
+            SendPieceCountsToClient(i);
+        }
+    }
+
+    [ClientRpc]
+    private void UpdateClientPieceCountClientRpc(ulong clientId, string pieceName, int count)
+    {
+        Debug.Log("Client: " + clientId + "; Piece name: " + pieceName + "; Count: " + count);
+        if (pieceCountsByPlayer.ContainsKey(clientId))
+        {
+            Debug.Log(pieceCountsByPlayer[clientId][pieceName]);
+            Debug.Log(count);
+            pieceCountsByPlayer[clientId][pieceName] = count;
+        }
+    }
+
+    public void SendPieceCountsToClient(ulong clientId)
+    {
+        foreach (var pieceCount in pieceCountsByPlayer[clientId])
+        {
+            if (!IsHost)
+                UpdateClientPieceCountClientRpc(clientId, pieceCount.Key, pieceCount.Value);
+        }
     }
 
     public void InitializeBoard(IGameManager gameManager)
@@ -37,7 +81,6 @@ public class BoardManager : NetworkBehaviour, IBoardManager
         }
     }
 
-
     [ClientRpc]
     private void InitializeTileClientRpc(ulong networkObjectId, bool isLake, int x, int y)
     {
@@ -54,7 +97,6 @@ public class BoardManager : NetworkBehaviour, IBoardManager
             }
         }
     }
-
 
     public Tile GetTileAt(int x, int y)
     {

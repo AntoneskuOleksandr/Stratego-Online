@@ -6,8 +6,8 @@ public class Bootstrap : NetworkBehaviour
 {
     [SerializeField] private MonoBehaviour preGameManagerBehaviour;
     [SerializeField] private MonoBehaviour gameManagerBehaviour;
-    [SerializeField] private MonoBehaviour boardManagerBehaviour;
     [SerializeField] private BoardGenerator boardGenerator;
+    [SerializeField] private BoardManager boardManager;
     [SerializeField] private ConfigManager configManager;
     [SerializeField] private PiecePlacementManager piecePlacementManager;
     [SerializeField] private UIManager uiManager;
@@ -16,7 +16,6 @@ public class Bootstrap : NetworkBehaviour
 
     private IGameManager preGameManager;
     private IGameManager gameManager;
-    private IBoardManager boardManager;
 
     private void Start()
     {
@@ -36,7 +35,6 @@ public class Bootstrap : NetworkBehaviour
         Debug.Log("InitializeBootstrap");
         preGameManager = (IGameManager)preGameManagerBehaviour;
         gameManager = (IGameManager)gameManagerBehaviour;
-        boardManager = (IBoardManager)boardManagerBehaviour;
 
         cameraController.Initialize();
         boardManager.Initialize(boardGenerator, configManager);

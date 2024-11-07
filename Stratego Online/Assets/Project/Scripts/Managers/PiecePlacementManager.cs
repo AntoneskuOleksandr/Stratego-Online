@@ -5,12 +5,11 @@ using UnityEngine;
 
 public class PiecePlacementManager : NetworkBehaviour
 {
-    private IBoardManager boardManager;
+    private BoardManager boardManager;
     private ConfigManager config;
-    private Dictionary<ulong, Dictionary<string, int>> pieceCountsByPlayer = new Dictionary<ulong, Dictionary<string, int>>();
     private UIManager uiManager;
 
-    public void Initialize(IBoardManager boardManager, ConfigManager configManager, UIManager uiManager)
+    public void Initialize(BoardManager boardManager, ConfigManager configManager, UIManager uiManager)
     {
         this.boardManager = boardManager;
         this.config = configManager;
@@ -30,7 +29,7 @@ public class PiecePlacementManager : NetworkBehaviour
 
         foreach (var pieceData in config.PiecesData)
         {
-            while (pieceCountsByPlayer[clientId][pieceData.Name] > 0)
+            while (boardManager.pieceCountsByPlayer[clientId][pieceData.Name] > 0)
             {
                 Tile randomTile = GetRandomEmptyTile(clientId);
 
@@ -39,8 +38,8 @@ public class PiecePlacementManager : NetworkBehaviour
                 if (randomTile != null)
                 {
                     SpawnPieceInTileServerRpc(pieceData.Name, randomTile.IndexInMatrix.Value, clientId);
-                    pieceCountsByPlayer[clientId][pieceData.Name] -= 1;
-                    uiManager.UpdatePieceCount(pieceData.Name, pieceCountsByPlayer[clientId][pieceData.Name]);
+                    boardManager.pieceCountsByPlayer[clientId][pieceData.Name] -= 1;
+                    uiManager.UpdatePieceCount(pieceData.Name, boardManager.pieceCountsByPlayer[clientId][pieceData.Name]);
                 }
                 else
                 {
@@ -53,12 +52,12 @@ public class PiecePlacementManager : NetworkBehaviour
 
     private void InitializePieceCountsIfNeeded(ulong clientId)
     {
-        if (!pieceCountsByPlayer.ContainsKey(clientId))
+        if (!boardManager.pieceCountsByPlayer.ContainsKey(clientId))
         {
-            pieceCountsByPlayer[clientId] = new Dictionary<string, int>();
+            boardManager.pieceCountsByPlayer[clientId] = new Dictionary<string, int>();
             foreach (var pieceData in config.PiecesData)
             {
-                pieceCountsByPlayer[clientId][pieceData.Name] = pieceData.Count;
+                boardManager.pieceCountsByPlayer[clientId][pieceData.Name] = pieceData.Count;
             }
         }
     }
@@ -81,10 +80,10 @@ public class PiecePlacementManager : NetworkBehaviour
                 placedPiece.Initialize(tile, boardManager, pieceData, (int)clientId);
                 tile.SetPiece(placedPiece);
 
-                int newCount = pieceCountsByPlayer[clientId][pieceName];
-                uiManager.UpdatePieceCount(pieceName, newCount);
+                boardManager.pieceCountsByPlayer[clientId][pieceData.Name] -= 1;
+                uiManager.UpdatePieceCount(pieceData.Name, boardManager.pieceCountsByPlayer[clientId][pieceData.Name]);
 
-                if (newCount == 0)
+                if (boardManager.pieceCountsByPlayer[clientId][pieceData.Name] == 0)
                 {
                     uiManager.DeselectPiece();
                 }
