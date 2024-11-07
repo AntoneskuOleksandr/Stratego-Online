@@ -1,4 +1,5 @@
 using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -89,7 +90,7 @@ public class PreGameManager : NetworkBehaviour, IGameManager
             PieceData pieceData = config.GetPieceDataByName(pieceName);
             if (pieceData != null)
             {
-                GameObject pieceObject = Instantiate(pieceData.Prefab, tile.transform.position, Quaternion.identity);
+                GameObject pieceObject = Instantiate(pieceData.Prefab, tile.transform.position, clientId == 0 ? Quaternion.identity : Quaternion.Euler(0, 180, 0));
                 NetworkObject networkObject = pieceObject.GetComponent<NetworkObject>();
                 networkObject.Spawn(true);
 
