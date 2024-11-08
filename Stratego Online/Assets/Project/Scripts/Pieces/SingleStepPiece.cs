@@ -5,8 +5,8 @@ public abstract class SingleStepPiece : Piece
     public override List<Tile> GetPossibleMoves(Tile[,] allTiles)
     {
         List<Tile> possibleMoves = new List<Tile>();
-        int x = currentTile.IndexInMatrix.x;
-        int y = currentTile.IndexInMatrix.y;
+        int x = currentTile.IndexInMatrix.Value.x;
+        int y = currentTile.IndexInMatrix.Value.y;
 
         TryAddTile(allTiles, x + 1, y, possibleMoves);
         TryAddTile(allTiles, x - 1, y, possibleMoves);
@@ -21,9 +21,12 @@ public abstract class SingleStepPiece : Piece
         if (x >= 0 && y >= 0 && x < allTiles.GetLength(0) && y < allTiles.GetLength(1))
         {
             Tile tile = allTiles[x, y];
-            if (!tile.IsLake && !tile.IsOccupied)
+            if (!tile.IsLake.Value)
             {
-                possibleMoves.Add(tile);
+                if (!tile.IsOccupied.Value || (tile.IsOccupied.Value && tile.GetPiece().PlayerId != PlayerId))
+                {
+                    possibleMoves.Add(tile);
+                }
             }
         }
     }

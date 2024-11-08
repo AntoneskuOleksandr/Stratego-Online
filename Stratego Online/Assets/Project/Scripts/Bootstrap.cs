@@ -1,35 +1,53 @@
+using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 
-public class Bootstrap : MonoBehaviour
+public class Bootstrap : NetworkBehaviour
 {
     [SerializeField] private MonoBehaviour preGameManagerBehaviour;
     [SerializeField] private MonoBehaviour gameManagerBehaviour;
-    [SerializeField] private MonoBehaviour boardManagerBehaviour;
     [SerializeField] private BoardGenerator boardGenerator;
+    [SerializeField] private BoardManager boardManager;
     [SerializeField] private ConfigManager configManager;
+    [SerializeField] private PiecePlacementManager piecePlacementManager;
     [SerializeField] private UIManager uiManager;
+    [SerializeField] private CameraController cameraController;
+    [SerializeField] private Button InitializeAllButton;
 
     private IGameManager preGameManager;
     private IGameManager gameManager;
-    private IBoardManager boardManager;
 
-    private void Awake()
+    private void Start()
     {
+        if (!IsHost)
+            InitializeAllButton.gameObject.SetActive(false);
+
+        InitializeAllButton.onClick.AddListener(() =>
+        {
+            InitializeClientRpc();
+            InitializeAllButton.gameObject.SetActive(false);
+        });
+    }
+
+    [ClientRpc]
+    private void InitializeClientRpc()
+    {
+        Debug.Log("InitializeBootstrap");
         preGameManager = (IGameManager)preGameManagerBehaviour;
         gameManager = (IGameManager)gameManagerBehaviour;
-        boardManager = (IBoardManager)boardManagerBehaviour;
 
+        cameraController.Initialize();
         boardManager.Initialize(boardGenerator, configManager);
-        uiManager.Initialize(preGameManager, configManager);
+        uiManager.Initialize(preGameManager, configManager, piecePlacementManager);
+        piecePlacementManager.Initialize(boardManager, uiManager, configManager);
 
-        // Подписываемся на событие OnStartGame
         var preGameManagerScript = preGameManagerBehaviour as PreGameManager;
         if (preGameManagerScript != null)
         {
             preGameManagerScript.OnStartGame.AddListener(StartGame);
         }
 
-        preGameManager.Initialize(boardManager, uiManager, configManager);
+        preGameManager.Initialize(boardManager, uiManager, piecePlacementManager);
     }
 
     private void StartGame()
@@ -43,7 +61,7 @@ public class Bootstrap : MonoBehaviour
             }
         }
         Destroy(((Component)preGameManager).gameObject);
-        gameManager.Initialize(boardManager, uiManager, configManager);
+        gameManager.Initialize(boardManager, uiManager, piecePlacementManager);
         gameManager.StartGame();
     }
 }

@@ -1,72 +1,97 @@
+using Unity.Netcode;
 using UnityEngine;
 
-public class Tile : MonoBehaviour
+public class Tile : NetworkBehaviour
 {
-    public bool IsOccupied { get; private set; }
-    public Vector3 Center
-    {
-        get
-        {
-            return GetComponent<Renderer>().bounds.center;
-        }
-        private set { }
-    }
-    public Vector2Int IndexInMatrix;
-    public bool IsLake;
+    public NetworkVariable<bool> IsOccupied = new NetworkVariable<bool>(false);
+    public NetworkVariable<Vector2Int> IndexInMatrix = new NetworkVariable<Vector2Int>();
+    public NetworkVariable<bool> IsLake = new NetworkVariable<bool>(false);
+
     private Piece occupyingPiece;
     private IGameManager gameManager;
     private Material tileMaterial;
     private Color originalColor;
     private Color highlightedColor;
 
-    public void Initialize(IGameManager gameManager, Color highlightedColor)
+    public Vector3 Center
+    {
+        get
+        {
+            return GetComponent<Renderer>().bounds.center;
+        }
+    }
+
+    public void ServerInitialize(IGameManager gameManager, Vector2Int index, bool isLake)
     {
         this.gameManager = gameManager;
-        tileMaterial = GetComponent<Renderer>().material;
+
+        if (IsServer)
+        {
+            IndexInMatrix.Value = index;
+            IsLake.Value = isLake;
+        }
+    }
+
+    public void ClientInitialize(IGameManager gameManager, Color highlightedColor, Material material)
+    {
+        this.gameManager = gameManager;
+
+        tileMaterial = material;
+        GetComponent<MeshRenderer>().material = tileMaterial;
+
         originalColor = tileMaterial.color;
         this.highlightedColor = highlightedColor;
     }
 
     private void OnMouseDown()
     {
-        if (IsOccupied)
+        if (IsOwner)
         {
-            if (gameManager.GetSelectedPiece() == occupyingPiece)
+            if (IsOccupied.Value)
             {
-                gameManager.DeselectPiece();
+                if (gameManager.GetSelectedPiece() == occupyingPiece)
+                {
+                    gameManager.DeselectPiece();
+                }
+                else if (gameManager.GetSelectedPiece() == null)
+                {
+                    gameManager.SelectPiece(occupyingPiece);
+                }
+                else
+                {
+                    gameManager.TryToMoveSelectedPieceTo(this);
+                }
             }
             else
             {
-                gameManager.SelectPiece(occupyingPiece);
+                gameManager.TryToMoveSelectedPieceTo(this);
             }
-        }
-        else
-        {
-            gameManager.TryToMoveSelectedPieceTo(this);
         }
     }
 
     public void PlacePiece(Piece piece)
     {
         occupyingPiece = piece;
-        IsOccupied = true;
+        IsOccupied.Value = true;
+    }
+
+    public void SetPiece(Piece piece)
+    {
+        if (IsServer)
+        {
+            occupyingPiece = piece;
+            IsOccupied.Value = true;
+        }
     }
 
     public void RemovePiece()
     {
         occupyingPiece = null;
-        IsOccupied = false;
-    }
-
-    public bool IsTileOccupied()
-    {
-        return IsOccupied;
+        IsOccupied.Value = false;
     }
 
     public Piece GetPiece()
     {
-        if (occupyingPiece == null)
-            Debug.Log("occupyingPiece = null");
         return occupyingPiece;
     }
 
@@ -80,8 +105,18 @@ public class Tile : MonoBehaviour
         tileMaterial.color = originalColor;
     }
 
-    public void SetGameManager(IGameManager newGameManager)
+    public void SetMaterial(Material material)
     {
-        this.gameManager = newGameManager;
+        if (tileMaterial != material)
+        {
+            tileMaterial = material;
+            GetComponent<MeshRenderer>().material = tileMaterial;
+            originalColor = tileMaterial.color;
+        }
+    }
+
+    public void SetGameManager(IGameManager gameManager)
+    {
+        this.gameManager = gameManager;
     }
 }
