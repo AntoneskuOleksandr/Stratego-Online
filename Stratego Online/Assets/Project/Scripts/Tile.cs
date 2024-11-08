@@ -12,6 +12,8 @@ public class Tile : NetworkBehaviour
     private Material tileMaterial;
     private Color originalColor;
     private Color highlightedColor;
+    private MaterialPropertyBlock propertyBlock;
+    private Renderer tileRenderer;
 
     public Vector3 Center
     {
@@ -35,12 +37,9 @@ public class Tile : NetworkBehaviour
     public void ClientInitialize(IGameManager gameManager, Color highlightedColor, Material material)
     {
         this.gameManager = gameManager;
-
-        tileMaterial = material;
-        GetComponent<MeshRenderer>().material = tileMaterial;
-
-        originalColor = tileMaterial.color;
         this.highlightedColor = highlightedColor;
+
+        SetMaterial(material);
     }
 
     private void OnMouseDown()
@@ -97,22 +96,27 @@ public class Tile : NetworkBehaviour
 
     public void Highlight()
     {
-        tileMaterial.color = Color.Lerp(originalColor, highlightedColor, 0.5f);
+        propertyBlock.SetColor("_Color", Color.Lerp(originalColor, highlightedColor, 0.5f));
+        tileRenderer.SetPropertyBlock(propertyBlock);
     }
 
     public void Unhighlight()
     {
-        tileMaterial.color = originalColor;
+        propertyBlock.SetColor("_Color", originalColor);
+        tileRenderer.SetPropertyBlock(propertyBlock);
     }
 
-    public void SetMaterial(Material material)
+
+    private void SetMaterial(Material material)
     {
-        if (tileMaterial != material)
-        {
-            tileMaterial = material;
-            GetComponent<MeshRenderer>().material = tileMaterial;
-            originalColor = tileMaterial.color;
-        }
+        tileRenderer = GetComponent<Renderer>();
+        tileMaterial = material;
+        tileRenderer.material = tileMaterial;
+
+        originalColor = tileMaterial.color;
+
+        propertyBlock = new MaterialPropertyBlock();
+        tileRenderer.GetPropertyBlock(propertyBlock);
     }
 
     public void SetGameManager(IGameManager gameManager)
