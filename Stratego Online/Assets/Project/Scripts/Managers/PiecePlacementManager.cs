@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -67,7 +66,13 @@ public class PiecePlacementManager : NetworkBehaviour
         uiManager.UpdatePieceCount(pieceName, count);
     }
 
-    public void PlacePiecesRandomly()
+    public void RequestPlacePiecesRandomly()
+    {
+        PlacePiecesRandomlyServerRpc(clientId);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void PlacePiecesRandomlyServerRpc(ulong clientId)
     {
         List<Tile> availableTiles = GetAvailableTiles(clientId);
         foreach (PieceData pieceData in config.PiecesData)
@@ -75,7 +80,8 @@ public class PiecePlacementManager : NetworkBehaviour
             for (int i = 0; i < pieceData.Count; i++)
             {
                 if (availableTiles.Count == 0) break;
-                Tile randomTile = availableTiles[Random.Range(0, availableTiles.Count)]; availableTiles.Remove(randomTile);
+                Tile randomTile = availableTiles[Random.Range(0, availableTiles.Count)];
+                availableTiles.Remove(randomTile);
                 PlacePieceServerRpc(randomTile.IndexInMatrix.Value, pieceData.Name, clientId);
             }
         }
@@ -83,7 +89,8 @@ public class PiecePlacementManager : NetworkBehaviour
 
     private List<Tile> GetAvailableTiles(ulong clientId)
     {
-        List<Tile> availableTiles = new List<Tile>(); foreach (Tile tile in boardManager.GetAllTiles())
+        List<Tile> availableTiles = new List<Tile>();
+        foreach (Tile tile in boardManager.GetAllTiles())
         {
             if (!tile.IsOccupied.Value && IsTileInPlayerHalf(tile, clientId))
             {
