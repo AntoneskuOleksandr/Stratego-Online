@@ -56,7 +56,7 @@ public class PiecePlacementManager : NetworkBehaviour
         {
             Debug.LogWarning("Something went wrong. You can't place piece here." +
                 "\nTile: " + tile + "\nTile IsOccupied: " + tile.IsOccupied.Value + "\nIsTileInPlayerHalf: " + IsTileInPlayerHalf(tile, clientId)
-                + "\nPiece Count: " + boardManager.pieceCountsByPlayer[clientId][pieceName]);
+                + "\nPiece Count: " + boardManager.pieceCountsByPlayer[clientId][pieceName] + "\nPiece Name: " + pieceName);
         }
     }
 
@@ -75,13 +75,24 @@ public class PiecePlacementManager : NetworkBehaviour
     private void PlacePiecesRandomlyServerRpc(ulong clientId)
     {
         List<Tile> availableTiles = GetAvailableTiles(clientId);
+
+        foreach (Tile tile in availableTiles)
+        {
+            Debug.Log(tile.IndexInMatrix.Value);
+        }
+
         foreach (PieceData pieceData in config.PiecesData)
         {
-            for (int i = 0; i < pieceData.Count; i++)
+            int pieceCount = boardManager.pieceCountsByPlayer[clientId][pieceData.Name];
+
+            Debug.Log(pieceData + " " + pieceCount);
+
+            for (int i = 0; i < pieceCount; i++)
             {
                 if (availableTiles.Count == 0) break;
                 Tile randomTile = availableTiles[Random.Range(0, availableTiles.Count)];
                 availableTiles.Remove(randomTile);
+                Debug.Log("PlacePieceServerRpc");
                 PlacePieceServerRpc(randomTile.IndexInMatrix.Value, pieceData.Name, clientId);
             }
         }
