@@ -5,14 +5,10 @@ public class GameManager : MonoBehaviour, IGameManager
 {
     private Piece selectedPiece;
     private BoardManager boardManager;
-    private UIManager uiManager;
-    private ConfigManager configManager;
 
-    public void Initialize(BoardManager boardManager, UIManager uiManager, ConfigManager configManager)
+    public void Initialize(BoardManager boardManager, UIManager uiManager, PiecePlacementManager piecePlacementManager)
     {
         this.boardManager = boardManager;
-        this.uiManager = uiManager;
-        this.configManager = configManager;
     }
 
     public void StartGame()

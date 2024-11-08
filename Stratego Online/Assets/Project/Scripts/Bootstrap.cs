@@ -39,7 +39,7 @@ public class Bootstrap : NetworkBehaviour
         cameraController.Initialize();
         boardManager.Initialize(boardGenerator, configManager);
         uiManager.Initialize(preGameManager, configManager, piecePlacementManager);
-        piecePlacementManager.Initialize(boardManager, configManager, uiManager);
+        piecePlacementManager.Initialize(boardManager, uiManager, configManager);
 
         var preGameManagerScript = preGameManagerBehaviour as PreGameManager;
         if (preGameManagerScript != null)
@@ -47,7 +47,7 @@ public class Bootstrap : NetworkBehaviour
             preGameManagerScript.OnStartGame.AddListener(StartGame);
         }
 
-        preGameManager.Initialize(boardManager, uiManager, configManager);
+        preGameManager.Initialize(boardManager, uiManager, piecePlacementManager);
     }
 
     private void StartGame()
@@ -61,7 +61,7 @@ public class Bootstrap : NetworkBehaviour
             }
         }
         Destroy(((Component)preGameManager).gameObject);
-        gameManager.Initialize(boardManager, uiManager, configManager);
+        gameManager.Initialize(boardManager, uiManager, piecePlacementManager);
         gameManager.StartGame();
     }
 }

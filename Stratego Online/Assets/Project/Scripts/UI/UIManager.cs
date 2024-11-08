@@ -27,7 +27,7 @@ public class UIManager : MonoBehaviour
         });
         randomPlacementButton.onClick.AddListener(() =>
         {
-            piecePlacementManager.RequestPlacePiecesRandomlyServerRpc(NetworkManager.Singleton.LocalClientId);
+            piecePlacementManager.PlacePiecesRandomly();
             randomPlacementButton.gameObject.SetActive(false);
         });
         readyButton.interactable = false;
@@ -66,6 +66,7 @@ public class UIManager : MonoBehaviour
 
     public void UpdatePieceCount(string pieceName, int count)
     {
+        Debug.Log("UpdatePieceCount; Client: " + NetworkManager.Singleton.LocalClientId);
         if (pieceButtons.ContainsKey(pieceName))
         {
             pieceCounts[pieceName] = count;

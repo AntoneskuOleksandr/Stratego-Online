@@ -6,82 +6,46 @@ using UnityEngine;
 public class PiecePlacementManager : NetworkBehaviour
 {
     private BoardManager boardManager;
-    private ConfigManager config;
     private UIManager uiManager;
+    private ConfigManager config;
+    private ulong clientId;
 
-    public void Initialize(BoardManager boardManager, ConfigManager configManager, UIManager uiManager)
+    public void Initialize(BoardManager boardManager, UIManager uiManager, ConfigManager config)
     {
         this.boardManager = boardManager;
-        this.config = configManager;
         this.uiManager = uiManager;
+        this.config = config;
+        clientId = NetworkManager.Singleton.LocalClientId;
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void RequestPlacePiecesRandomlyServerRpc(ulong clientId)
+    public void PlacePieceServerRpc(Vector2Int tileIndex, string pieceName, ulong clientId)
     {
-        PlacePieces(clientId);
-    }
-
-    private void PlacePieces(ulong clientId)
-    {
-        InitializePieceCountsIfNeeded(clientId);
-        Debug.Log("PlacePieces for client " + clientId);
-
-        foreach (var pieceData in config.PiecesData)
-        {
-            while (boardManager.pieceCountsByPlayer[clientId][pieceData.Name] > 0)
-            {
-                Tile randomTile = GetRandomEmptyTile(clientId);
-
-                Debug.Log("Player ID: " + clientId + "; Tile: " + randomTile);
-
-                if (randomTile != null)
-                {
-                    SpawnPieceInTileServerRpc(pieceData.Name, randomTile.IndexInMatrix.Value, clientId);
-                    boardManager.pieceCountsByPlayer[clientId][pieceData.Name] -= 1;
-                    uiManager.UpdatePieceCount(pieceData.Name, boardManager.pieceCountsByPlayer[clientId][pieceData.Name]);
-                }
-                else
-                {
-                    Debug.LogError("There are no free tiles");
-                    break;
-                }
-            }
-        }
-    }
-
-    private void InitializePieceCountsIfNeeded(ulong clientId)
-    {
-        if (!boardManager.pieceCountsByPlayer.ContainsKey(clientId))
-        {
-            boardManager.pieceCountsByPlayer[clientId] = new Dictionary<string, int>();
-            foreach (var pieceData in config.PiecesData)
-            {
-                boardManager.pieceCountsByPlayer[clientId][pieceData.Name] = pieceData.Count;
-            }
-        }
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void SpawnPieceInTileServerRpc(string pieceName, Vector2Int tileIndex, ulong clientId)
-    {
+        PieceData pieceData = config.GetPieceDataByName(pieceName);
         Tile tile = boardManager.GetTileAt(tileIndex.x, tileIndex.y);
-
-        if (tile != null && !tile.IsOccupied.Value)
+        if (tile != null && !tile.IsOccupied.Value && IsTileInPlayerHalf(tile, clientId) && boardManager.pieceCountsByPlayer[clientId][pieceData.Name] > 0)
         {
-            PieceData pieceData = config.GetPieceDataByName(pieceName);
             if (pieceData != null)
             {
-                GameObject pieceObject = Instantiate(pieceData.Prefab, tile.transform.position, Quaternion.identity);
+                GameObject pieceObject = Instantiate(pieceData.Prefab, tile.transform.position, clientId == 0 ? Quaternion.identity : Quaternion.Euler(0, 180, 0));
                 NetworkObject networkObject = pieceObject.GetComponent<NetworkObject>();
                 networkObject.Spawn(true);
 
                 Piece placedPiece = pieceObject.GetComponent<Piece>();
-                placedPiece.Initialize(tile, boardManager, pieceData, (int)clientId);
+                placedPiece.Initialize(tile, boardManager, pieceData, 0);
                 tile.SetPiece(placedPiece);
 
                 boardManager.pieceCountsByPlayer[clientId][pieceData.Name] -= 1;
-                uiManager.UpdatePieceCount(pieceData.Name, boardManager.pieceCountsByPlayer[clientId][pieceData.Name]);
+                boardManager.SendPieceCountsToClient(clientId);
+
+                var clientRpcParams = new ClientRpcParams
+                {
+                    Send = new ClientRpcSendParams
+                    {
+                        TargetClientIds = new ulong[] { clientId }
+                    }
+                };
+                UpdatePieceCountClientRpc(pieceData.Name, boardManager.pieceCountsByPlayer[clientId][pieceData.Name], clientRpcParams);
 
                 if (boardManager.pieceCountsByPlayer[clientId][pieceData.Name] == 0)
                 {
@@ -89,20 +53,44 @@ public class PiecePlacementManager : NetworkBehaviour
                 }
             }
         }
+        else
+        {
+            Debug.LogWarning("Something went wrong. You can't place piece here." +
+                "\nTile: " + tile + "\nTile IsOccupied: " + tile.IsOccupied.Value + "\nIsTileInPlayerHalf: " + IsTileInPlayerHalf(tile, clientId)
+                + "\nPiece Count: " + boardManager.pieceCountsByPlayer[clientId][pieceName]);
+        }
     }
 
-    private Tile GetRandomEmptyTile(ulong clientId)
+    [ClientRpc]
+    private void UpdatePieceCountClientRpc(string pieceName, int count, ClientRpcParams clientRpcParams = default)
     {
-        Tile[,] allTiles = boardManager.GetAllTiles();
+        uiManager.UpdatePieceCount(pieceName, count);
+    }
 
-        Tile[] emptyTiles = System.Array.FindAll(allTiles.Cast<Tile>().ToArray(), tile => !tile.IsOccupied.Value && IsTileInPlayerHalf(tile, clientId));
-
-        if (emptyTiles.Length > 0)
+    public void PlacePiecesRandomly()
+    {
+        List<Tile> availableTiles = GetAvailableTiles(clientId);
+        foreach (PieceData pieceData in config.PiecesData)
         {
-            return emptyTiles[Random.Range(0, emptyTiles.Length)];
+            for (int i = 0; i < pieceData.Count; i++)
+            {
+                if (availableTiles.Count == 0) break;
+                Tile randomTile = availableTiles[Random.Range(0, availableTiles.Count)]; availableTiles.Remove(randomTile);
+                PlacePieceServerRpc(randomTile.IndexInMatrix.Value, pieceData.Name, clientId);
+            }
         }
-        Debug.LogWarning("There are no empty tiles in the first four rows");
-        return null;
+    }
+
+    private List<Tile> GetAvailableTiles(ulong clientId)
+    {
+        List<Tile> availableTiles = new List<Tile>(); foreach (Tile tile in boardManager.GetAllTiles())
+        {
+            if (!tile.IsOccupied.Value && IsTileInPlayerHalf(tile, clientId))
+            {
+                availableTiles.Add(tile);
+            }
+        }
+        return availableTiles;
     }
 
     private bool IsTileInPlayerHalf(Tile tile, ulong clientId)
@@ -110,19 +98,53 @@ public class PiecePlacementManager : NetworkBehaviour
         int maxRows = config.BoardRows;
 
         if (clientId == 0)
-            if (tile.IndexInMatrix.Value.y < maxRows / 2 - 1)
-                return true;
-            else
-                return false;
+            return tile.IndexInMatrix.Value.y < maxRows / 2 - 1;
         else if (clientId == 1)
-            if (tile.IndexInMatrix.Value.y > maxRows / 2)
-                return true;
-            else
-                return false;
+            return tile.IndexInMatrix.Value.y > maxRows / 2;
         else
         {
             Debug.LogError("Something wrong with clientId");
             return false;
+        }
+    }
+
+    public void TryRemovePiece(Tile tile, ulong clientId)
+    {
+        if (tile != null && tile.IsOccupied.Value && IsTileInPlayerHalf(tile, clientId))
+        {
+            CmdRemovePieceServerRpc(tile.IndexInMatrix.Value.x, tile.IndexInMatrix.Value.y, clientId);
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void CmdRemovePieceServerRpc(int x, int y, ulong clientId)
+    {
+        Tile tile = boardManager.GetTileAt(x, y);
+        Piece piece = tile.GetPiece();
+        if (piece != null)
+        {
+            PieceData pieceData = piece.PieceData;
+            Destroy(piece.gameObject);
+            tile.RemovePiece();
+
+            if (pieceData != null)
+            {
+                boardManager.pieceCountsByPlayer[clientId][pieceData.Name] += 1;
+                boardManager.SendPieceCountsToClient(clientId);
+
+                var clientRpcParams = new ClientRpcParams
+                {
+                    Send = new ClientRpcSendParams
+                    {
+                        TargetClientIds = new ulong[] { clientId }
+                    }
+                };
+                UpdatePieceCountClientRpc(pieceData.Name, boardManager.pieceCountsByPlayer[clientId][pieceData.Name], clientRpcParams);
+            }
+        }
+        else
+        {
+            Debug.LogError("Tile is occupied but tile.GetPiece is null");
         }
     }
 }
