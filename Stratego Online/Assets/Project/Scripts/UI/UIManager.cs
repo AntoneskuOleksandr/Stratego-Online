@@ -27,7 +27,7 @@ public class UIManager : MonoBehaviour
         });
         randomPlacementButton.onClick.AddListener(() =>
         {
-            piecePlacementManager.PlacePiecesRandomly();
+            piecePlacementManager.RequestPlacePiecesRandomly();
             randomPlacementButton.gameObject.SetActive(false);
         });
         readyButton.interactable = false;

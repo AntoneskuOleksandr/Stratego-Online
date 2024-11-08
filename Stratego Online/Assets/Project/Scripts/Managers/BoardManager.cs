@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -92,7 +91,6 @@ public class BoardManager : NetworkBehaviour
             {
                 Material tileMaterial = isLake ? config.TileMaterialLake :
                     (x + y) % 2 == 0 ? config.TileMaterialWhite : config.TileMaterialBlack;
-                tile.SetMaterial(tileMaterial);
                 tile.ClientInitialize(gameManager, config.TileColorHighlighted, tileMaterial);
             }
         }
