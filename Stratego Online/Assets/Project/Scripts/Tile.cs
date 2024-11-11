@@ -8,12 +8,13 @@ public class Tile : NetworkBehaviour
     public NetworkVariable<bool> IsLake = new NetworkVariable<bool>(false);
 
     private Piece occupyingPiece;
-    private IGameManager gameManager;
+    private GameManager gameManager;
     private Material tileMaterial;
     private Color originalColor;
     private Color highlightedColor;
     private MaterialPropertyBlock propertyBlock;
     private Renderer tileRenderer;
+    private bool isGameStarted;
 
     public Vector3 Center
     {
@@ -23,20 +24,19 @@ public class Tile : NetworkBehaviour
         }
     }
 
-    public void ServerInitialize(IGameManager gameManager, Vector2Int index, bool isLake)
+    public void ServerInitialize(Vector2Int index, bool isLake, GameManager gameManager)
     {
-        this.gameManager = gameManager;
-
         if (IsServer)
         {
+            this.gameManager = gameManager;
             IndexInMatrix.Value = index;
             IsLake.Value = isLake;
         }
     }
 
-    public void ClientInitialize(IGameManager gameManager, Color highlightedColor, Material material)
+    public void ClientInitialize(Color highlightedColor, Material material)
     {
-        this.gameManager = gameManager;
+        isGameStarted = false;
         this.highlightedColor = highlightedColor;
 
         SetMaterial(material);
@@ -44,27 +44,30 @@ public class Tile : NetworkBehaviour
 
     private void OnMouseDown()
     {
-        if (IsOwner)
+        Debug.Log("GameManager: " + gameManager);
+        Debug.Log("Owner: " + OwnerClientId);
+
+        if (!isGameStarted)
+            return;
+
+        if (IsOccupied.Value)
         {
-            if (IsOccupied.Value)
+            if (gameManager.GetSelectedPiece() == occupyingPiece)
             {
-                if (gameManager.GetSelectedPiece() == occupyingPiece)
-                {
-                    gameManager.DeselectPiece();
-                }
-                else if (gameManager.GetSelectedPiece() == null)
-                {
-                    gameManager.SelectPiece(occupyingPiece);
-                }
-                else
-                {
-                    gameManager.TryToMoveSelectedPieceTo(this);
-                }
+                gameManager.DeselectPiece();
+            }
+            else if (gameManager.GetSelectedPiece() == null)
+            {
+                gameManager.SelectPiece(occupyingPiece);
             }
             else
             {
                 gameManager.TryToMoveSelectedPieceTo(this);
             }
+        }
+        else
+        {
+            gameManager.TryToMoveSelectedPieceTo(this);
         }
     }
 
@@ -106,7 +109,6 @@ public class Tile : NetworkBehaviour
         tileRenderer.SetPropertyBlock(propertyBlock);
     }
 
-
     private void SetMaterial(Material material)
     {
         tileRenderer = GetComponent<Renderer>();
@@ -119,8 +121,8 @@ public class Tile : NetworkBehaviour
         tileRenderer.GetPropertyBlock(propertyBlock);
     }
 
-    public void SetGameManager(IGameManager gameManager)
+    public void StartGame()
     {
-        this.gameManager = gameManager;
+        isGameStarted = true;
     }
 }

@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-public class PreGameManager : NetworkBehaviour, IGameManager
+public class PreGameManager : NetworkBehaviour
 {
     [SerializeField] private Button GenerateBoardButton;
     public UnityEvent OnStartGame;
@@ -16,12 +16,6 @@ public class PreGameManager : NetworkBehaviour, IGameManager
     {
         if (!IsHost)
             GenerateBoardButton.gameObject.SetActive(false);
-
-        GenerateBoardButton.onClick.AddListener(() =>
-        {
-            boardManager.InitializeBoard(this);
-            GenerateBoardButton.gameObject.SetActive(false);
-        });
 
         clientId = NetworkManager.Singleton.LocalClientId;
     }

@@ -8,7 +8,6 @@ public class BoardManager : NetworkBehaviour
     private BoardGenerator boardGenerator;
     private GameObject[,] tiles;
     private ConfigManager config;
-    private IGameManager gameManager;
 
     public void Initialize(BoardGenerator boardGenerator, ConfigManager config)
     {
@@ -59,10 +58,9 @@ public class BoardManager : NetworkBehaviour
         }
     }
 
-    public void InitializeBoard(IGameManager gameManager)
+    public void InitializeBoard(GameManager gameManager)
     {
         Debug.Log("InitializeBoard");
-        this.gameManager = gameManager;
 
         if (IsServer)
         {
@@ -73,7 +71,7 @@ public class BoardManager : NetworkBehaviour
                 for (int x = 0; x < tiles.GetLength(0); x++)
                 {
                     Tile tileComponent = tiles[x, y].GetComponent<Tile>();
-                    tileComponent.ServerInitialize(gameManager, new Vector2Int(x, y), tileComponent.IsLake.Value);
+                    tileComponent.ServerInitialize(new Vector2Int(x, y), tileComponent.IsLake.Value, gameManager);
                     InitializeTileClientRpc(tileComponent.NetworkObjectId, tileComponent.IsLake.Value, x, y);
                 }
             }
@@ -91,7 +89,7 @@ public class BoardManager : NetworkBehaviour
             {
                 Material tileMaterial = isLake ? config.TileMaterialLake :
                     (x + y) % 2 == 0 ? config.TileMaterialWhite : config.TileMaterialBlack;
-                tile.ClientInitialize(gameManager, config.TileColorHighlighted, tileMaterial);
+                tile.ClientInitialize(config.TileColorHighlighted, tileMaterial);
             }
         }
     }

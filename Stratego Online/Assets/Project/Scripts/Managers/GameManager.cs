@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour, IGameManager
+public class GameManager : MonoBehaviour
 {
     private Piece selectedPiece;
     private BoardManager boardManager;
@@ -13,7 +13,6 @@ public class GameManager : MonoBehaviour, IGameManager
 
     public void StartGame()
     {
-        // Логика для старта игры
         Debug.Log("Game has started!");
     }
 
@@ -114,8 +113,4 @@ public class GameManager : MonoBehaviour, IGameManager
         return false;
     }
 
-    public void SelectPiece(PieceData pieceData)
-    {
-        throw new System.NotImplementedException();
-    }
 }

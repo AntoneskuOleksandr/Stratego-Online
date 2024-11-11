@@ -1991,8 +1991,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  preGameManagerBehaviour: {fileID: 1405183294}
-  gameManagerBehaviour: {fileID: 1945649465}
+  preGameManager: {fileID: 1405183294}
+  gameManager: {fileID: 1945649465}
   boardGenerator: {fileID: 480814201}
   boardManager: {fileID: 97249336}
   configManager: {fileID: 11400000, guid: 1d8e5456a46ca414690e97a403290d26, type: 2}
@@ -2000,6 +2000,7 @@ MonoBehaviour:
   uiManager: {fileID: 728938757}
   cameraController: {fileID: 963194231}
   InitializeAllButton: {fileID: 2088974272}
+  GenerateBoardButton: {fileID: 1003470816}
 --- !u!114 &1381528251
 MonoBehaviour:
   m_ObjectHideFlags: 0
