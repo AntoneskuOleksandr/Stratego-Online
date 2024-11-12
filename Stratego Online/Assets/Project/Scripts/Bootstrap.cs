@@ -4,8 +4,8 @@ using UnityEngine.UI;
 
 public class Bootstrap : NetworkBehaviour
 {
-    [SerializeField] private MonoBehaviour preGameManagerBehaviour;
-    [SerializeField] private MonoBehaviour gameManagerBehaviour;
+    [SerializeField] private PreGameManager preGameManager;
+    [SerializeField] private GameManager gameManager;
     [SerializeField] private BoardGenerator boardGenerator;
     [SerializeField] private BoardManager boardManager;
     [SerializeField] private ConfigManager configManager;
@@ -13,55 +13,75 @@ public class Bootstrap : NetworkBehaviour
     [SerializeField] private UIManager uiManager;
     [SerializeField] private CameraController cameraController;
     [SerializeField] private Button InitializeAllButton;
-
-    private IGameManager preGameManager;
-    private IGameManager gameManager;
+    [SerializeField] private Button GenerateBoardButton;
 
     private void Start()
     {
-        if (!IsHost)
-            InitializeAllButton.gameObject.SetActive(false);
-
-        InitializeAllButton.onClick.AddListener(() =>
+        if (IsHost)
         {
-            InitializeClientRpc();
+            InitializeAllButton.onClick.AddListener(() =>
+            {
+                InitializeClientRpc();
+                InitializeAllButton.gameObject.SetActive(false);
+            });
+
+            GenerateBoardButton.onClick.AddListener(() =>
+            {
+                boardManager.InitializeBoardServerRpc();
+                GenerateBoardButton.gameObject.SetActive(false);
+            });
+
+            uiManager.readyButton.onClick.AddListener(StartGameServerRpc);
+        }
+        else
             InitializeAllButton.gameObject.SetActive(false);
-        });
     }
 
     [ClientRpc]
     private void InitializeClientRpc()
     {
         Debug.Log("InitializeBootstrap");
-        preGameManager = (IGameManager)preGameManagerBehaviour;
-        gameManager = (IGameManager)gameManagerBehaviour;
 
         cameraController.Initialize();
-        boardManager.Initialize(boardGenerator, configManager);
+        boardManager.Initialize(boardGenerator, configManager, gameManager);
         uiManager.Initialize(preGameManager, configManager, piecePlacementManager);
         piecePlacementManager.Initialize(boardManager, uiManager, configManager);
-
-        var preGameManagerScript = preGameManagerBehaviour as PreGameManager;
-        if (preGameManagerScript != null)
-        {
-            preGameManagerScript.OnStartGame.AddListener(StartGame);
-        }
 
         preGameManager.Initialize(boardManager, uiManager, piecePlacementManager);
     }
 
-    private void StartGame()
+    [ServerRpc]
+    private void StartGameServerRpc()
     {
+        Debug.Log("StartGameServerRpc");
+        gameManager.Initialize(boardManager, uiManager, piecePlacementManager);
+
         Tile[,] allTiles = boardManager.GetAllTiles();
+
         for (int y = 0; y < allTiles.GetLength(1); y++)
         {
             for (int x = 0; x < allTiles.GetLength(0); x++)
             {
-                allTiles[x, y].SetGameManager(gameManager);
+                StartTileGameClientRpc(allTiles[x, y].NetworkObjectId);
             }
         }
-        Destroy(((Component)preGameManager).gameObject);
-        gameManager.Initialize(boardManager, uiManager, piecePlacementManager);
+
+        Destroy(preGameManager.gameObject);
+
         gameManager.StartGame();
+    }
+
+    [ClientRpc]
+    private void StartTileGameClientRpc(ulong tileNetworkObjectId)
+    {
+        NetworkObject networkObject = NetworkManager.Singleton.SpawnManager.SpawnedObjects[tileNetworkObjectId];
+        if (networkObject != null)
+        {
+            Tile tile = networkObject.GetComponent<Tile>();
+            if (tile != null)
+            {
+                tile.StartGame();
+            }
+        }
     }
 }

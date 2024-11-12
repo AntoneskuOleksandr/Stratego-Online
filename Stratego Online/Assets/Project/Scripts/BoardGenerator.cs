@@ -6,7 +6,7 @@ public class BoardGenerator : MonoBehaviour
 {
     private ConfigManager config;
     private GameObject[,] tiles;
-    public GameObject tilePrefab;
+    public GameObject TilePrefab;
 
     public void Initialize(ConfigManager config)
     {
@@ -55,7 +55,7 @@ public class BoardGenerator : MonoBehaviour
 
     private GameObject GenerateSingleTile(float tileSize, int x, int y, LayerMask layer, Material material)
     {
-        GameObject tileObject = Instantiate(tilePrefab);
+        GameObject tileObject = Instantiate(TilePrefab);
         tileObject.name = string.Format("X:{0}, Y:{1}", x, y);
 
         MeshRenderer renderer = tileObject.GetComponent<MeshRenderer>();

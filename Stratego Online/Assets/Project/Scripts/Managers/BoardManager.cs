@@ -8,12 +8,14 @@ public class BoardManager : NetworkBehaviour
     private BoardGenerator boardGenerator;
     private GameObject[,] tiles;
     private ConfigManager config;
-    private IGameManager gameManager;
+    private GameManager gameManager;
 
-    public void Initialize(BoardGenerator boardGenerator, ConfigManager config)
+    public void Initialize(BoardGenerator boardGenerator, ConfigManager config, GameManager gameManager)
     {
         this.boardGenerator = boardGenerator;
         this.config = config;
+        this.gameManager = gameManager;
+
         boardGenerator.Initialize(config);
     }
 
@@ -24,7 +26,6 @@ public class BoardManager : NetworkBehaviour
 
         if (IsHost)
             clientsCount = 2;
-
 
         for (ulong i = 0; i < clientsCount; i++)
         {
@@ -59,23 +60,20 @@ public class BoardManager : NetworkBehaviour
         }
     }
 
-    public void InitializeBoard(IGameManager gameManager)
+    [ServerRpc]
+    public void InitializeBoardServerRpc()
     {
         Debug.Log("InitializeBoard");
-        this.gameManager = gameManager;
 
-        if (IsServer)
+        tiles = boardGenerator.GenerateBoard();
+
+        for (int y = 0; y < tiles.GetLength(1); y++)
         {
-            tiles = boardGenerator.GenerateBoard();
-
-            for (int y = 0; y < tiles.GetLength(1); y++)
+            for (int x = 0; x < tiles.GetLength(0); x++)
             {
-                for (int x = 0; x < tiles.GetLength(0); x++)
-                {
-                    Tile tileComponent = tiles[x, y].GetComponent<Tile>();
-                    tileComponent.ServerInitialize(gameManager, new Vector2Int(x, y), tileComponent.IsLake.Value);
-                    InitializeTileClientRpc(tileComponent.NetworkObjectId, tileComponent.IsLake.Value, x, y);
-                }
+                Tile tileComponent = tiles[x, y].GetComponent<Tile>();
+                tileComponent.ServerInitialize(new Vector2Int(x, y), tileComponent.IsLake.Value, gameManager);
+                InitializeTileClientRpc(tileComponent.NetworkObjectId, tileComponent.IsLake.Value, x, y);
             }
         }
     }
@@ -91,7 +89,7 @@ public class BoardManager : NetworkBehaviour
             {
                 Material tileMaterial = isLake ? config.TileMaterialLake :
                     (x + y) % 2 == 0 ? config.TileMaterialWhite : config.TileMaterialBlack;
-                tile.ClientInitialize(gameManager, config.TileColorHighlighted, tileMaterial);
+                tile.ClientInitialize(config.TileColorHighlighted, tileMaterial);
             }
         }
     }
@@ -100,6 +98,7 @@ public class BoardManager : NetworkBehaviour
     {
         if (tiles == null || x < 0 || x >= tiles.GetLength(0) || y < 0 || y >= tiles.GetLength(1))
         {
+            Debug.Log($"Tile on ({x};{y}) is null");
             return null;
         }
         return tiles[x, y].GetComponent<Tile>();

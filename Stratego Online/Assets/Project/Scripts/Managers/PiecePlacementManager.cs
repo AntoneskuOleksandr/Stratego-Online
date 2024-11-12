@@ -28,10 +28,12 @@ public class PiecePlacementManager : NetworkBehaviour
             {
                 GameObject pieceObject = Instantiate(pieceData.Prefab, tile.transform.position, clientId == 0 ? Quaternion.identity : Quaternion.Euler(0, 180, 0));
                 NetworkObject networkObject = pieceObject.GetComponent<NetworkObject>();
-                networkObject.Spawn(true);
 
                 Piece placedPiece = pieceObject.GetComponent<Piece>();
-                placedPiece.Initialize(tile, boardManager, pieceData, 0);
+                networkObject.Spawn(true);
+
+                InitializePieceClientRpc(networkObject.NetworkObjectId, tile.GetComponent<NetworkObject>().NetworkObjectId,
+                    pieceName, clientId);
                 tile.SetPiece(placedPiece);
 
                 boardManager.pieceCountsByPlayer[clientId][pieceData.Name] -= 1;
@@ -56,7 +58,7 @@ public class PiecePlacementManager : NetworkBehaviour
         {
             Debug.LogWarning("Something went wrong. You can't place piece here." +
                 "\nTile: " + tile + "\nTile IsOccupied: " + tile.IsOccupied.Value + "\nIsTileInPlayerHalf: " + IsTileInPlayerHalf(tile, clientId)
-                + "\nPiece Count: " + boardManager.pieceCountsByPlayer[clientId][pieceName]);
+                + "\nPiece Count: " + boardManager.pieceCountsByPlayer[clientId][pieceName] + "\nPiece Name: " + pieceName);
         }
     }
 
@@ -64,6 +66,17 @@ public class PiecePlacementManager : NetworkBehaviour
     private void UpdatePieceCountClientRpc(string pieceName, int count, ClientRpcParams clientRpcParams = default)
     {
         uiManager.UpdatePieceCount(pieceName, count);
+    }
+
+    [ClientRpc]
+    private void InitializePieceClientRpc(ulong pieceNOId, ulong tileNOId, string pieceDataName, ulong clientId)
+    {
+        NetworkObject pieceNO = NetworkManager.Singleton.SpawnManager.SpawnedObjects[pieceNOId];
+        Piece piece = pieceNO.GetComponent<Piece>();
+        NetworkObject tileNO = NetworkManager.Singleton.SpawnManager.SpawnedObjects[tileNOId];
+        Tile tile = tileNO.GetComponent<Tile>();
+
+        piece.ClientInitialize(tile, boardManager, config.GetPieceDataByName(pieceDataName), clientId);
     }
 
     public void RequestPlacePiecesRandomly()
@@ -75,9 +88,11 @@ public class PiecePlacementManager : NetworkBehaviour
     private void PlacePiecesRandomlyServerRpc(ulong clientId)
     {
         List<Tile> availableTiles = GetAvailableTiles(clientId);
+
         foreach (PieceData pieceData in config.PiecesData)
         {
-            for (int i = 0; i < pieceData.Count; i++)
+            int pieceCount = boardManager.pieceCountsByPlayer[clientId][pieceData.Name];
+            for (int i = 0; i < pieceCount; i++)
             {
                 if (availableTiles.Count == 0) break;
                 Tile randomTile = availableTiles[Random.Range(0, availableTiles.Count)];

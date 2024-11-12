@@ -6,16 +6,16 @@ using UnityEngine.UI;
 public class UIManager : MonoBehaviour
 {
     [SerializeField] private GameObject buttonPrefab;
-    [SerializeField] private Button readyButton;
     [SerializeField] private Button randomPlacementButton;
     [SerializeField] private Transform buttonContainer;
+    public Button readyButton;
     private Dictionary<string, int> pieceCounts = new Dictionary<string, int>();
     private List<PieceData> originalPiecesData;
     private Dictionary<string, PieceButton> pieceButtons = new Dictionary<string, PieceButton>();
     private PieceData selectedPiece;
-    private IGameManager gameManager;
+    private PreGameManager gameManager;
 
-    public void Initialize(IGameManager gameManager, ConfigManager config, PiecePlacementManager piecePlacementManager)
+    public void Initialize(PreGameManager gameManager, ConfigManager config, PiecePlacementManager piecePlacementManager)
     {
         this.gameManager = gameManager;
         originalPiecesData = config.PiecesData;
