@@ -6,8 +6,8 @@ public class Scout : Piece
     public override List<Tile> GetPossibleMoves(Tile[,] allTiles)
     {
         List<Tile> possibleMoves = new List<Tile>();
-        int x = currentTile.IndexInMatrix.Value.x;
-        int y = currentTile.IndexInMatrix.Value.y;
+        int x = currentTile.IndexInMatrix.x;
+        int y = currentTile.IndexInMatrix.y;
 
         for (int i = y + 1; i < allTiles.GetLength(1); i++)
         {
@@ -38,12 +38,12 @@ public class Scout : Piece
 
     private bool AddTileIfValid(Tile tile, List<Tile> possibleMoves)
     {
-        if (tile.IsLake.Value)
+        if (tile.IsLake)
         {
             return false;
         }
 
-        if (tile.IsOccupied.Value)
+        if (tile.IsOccupied)
         {
             if (tile.GetPiece().PlayerId == PlayerId)
             {

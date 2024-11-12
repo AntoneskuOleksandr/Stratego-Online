@@ -1,11 +1,11 @@
 using Unity.Netcode;
 using UnityEngine;
 
-public class Tile : NetworkBehaviour
+public class Tile : MonoBehaviour
 {
-    public NetworkVariable<bool> IsOccupied = new NetworkVariable<bool>(false);
-    public NetworkVariable<Vector2Int> IndexInMatrix = new NetworkVariable<Vector2Int>();
-    public NetworkVariable<bool> IsLake = new NetworkVariable<bool>(false);
+    public bool IsOccupied;
+    public Vector2Int IndexInMatrix;
+    public bool IsLake;
 
     private Piece occupyingPiece;
     private Material tileMaterial;
@@ -24,22 +24,13 @@ public class Tile : NetworkBehaviour
         }
     }
 
-    public void ServerInitialize(Vector2Int index, bool isLake, GameManager gameManager)
-    {
-        if (IsServer)
-        {
-            this.gameManager = gameManager;
-            IndexInMatrix.Value = index;
-            IsLake.Value = isLake;
-        }
-    }
-
-    public void ClientInitialize(Color highlightedColor, Material material)
+    public void Initialize(Vector2Int index, GameManager gameManager, Color highlightedColor)
     {
         isGameStarted = false;
-        this.highlightedColor = highlightedColor;
+        this.gameManager = gameManager;
+        IndexInMatrix = index;
 
-        SetMaterial(material);
+        this.highlightedColor = highlightedColor;
     }
 
     private void OnMouseDown()
@@ -47,7 +38,7 @@ public class Tile : NetworkBehaviour
         if (!isGameStarted)
             return;
 
-        RequestTileActionServerRpc(NetworkObjectId, NetworkManager.Singleton.LocalClientId);
+        //RequestTileActionServerRpc(NetworkObjectId, NetworkManager.Singleton.LocalClientId);
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -63,9 +54,9 @@ public class Tile : NetworkBehaviour
 
     private void HandleTileAction(Tile tile, ulong clientId)
     {
-        Debug.Log(IsOccupied.Value);
+        Debug.Log(IsOccupied);
         Debug.Log(clientId);
-        if (IsOccupied.Value && tile.occupyingPiece.PlayerId == clientId)
+        if (IsOccupied && tile.occupyingPiece.PlayerId == clientId)
         {
             if (gameManager.GetSelectedPiece() == occupyingPiece)
             {
@@ -89,22 +80,22 @@ public class Tile : NetworkBehaviour
     public void PlacePiece(Piece piece)
     {
         occupyingPiece = piece;
-        IsOccupied.Value = true;
+        IsOccupied = true;
     }
 
     public void SetPiece(Piece piece)
     {
-        if (IsServer)
+        //if (IsServer)
         {
             occupyingPiece = piece;
-            IsOccupied.Value = true;
+            IsOccupied = true;
         }
     }
 
     public void RemovePiece()
     {
         occupyingPiece = null;
-        IsOccupied.Value = false;
+        IsOccupied = false;
     }
 
     public Piece GetPiece()
@@ -124,7 +115,7 @@ public class Tile : NetworkBehaviour
         tileRenderer.SetPropertyBlock(propertyBlock);
     }
 
-    private void SetMaterial(Material material)
+    public void SetMaterial(Material material)
     {
         tileRenderer = GetComponent<Renderer>();
         tileMaterial = material;

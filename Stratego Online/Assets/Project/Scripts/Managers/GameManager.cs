@@ -47,7 +47,7 @@ public class GameManager : MonoBehaviour
         Debug.Log("TryToMoveSelectedPieceTo " + tile + "; Client: " + clientId);
         if (CanMove(tile))
         {
-            if (tile.IsOccupied.Value)
+            if (tile.IsOccupied)
             {
                 ResolveBattle(selectedPiece, selectedPiece.GetTile(), tile);
             }

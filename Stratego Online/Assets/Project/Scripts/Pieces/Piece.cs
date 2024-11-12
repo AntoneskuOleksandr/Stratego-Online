@@ -121,7 +121,7 @@ public abstract class Piece : NetworkBehaviour
         List<Vector2Int> movePositions = new List<Vector2Int>();
         foreach (Tile tile in possibleMoves)
         {
-            movePositions.Add(tile.IndexInMatrix.Value);
+            movePositions.Add(tile.IndexInMatrix);
         }
         return movePositions;
     }
@@ -153,7 +153,7 @@ public abstract class Piece : NetworkBehaviour
     protected List<Tile> GetFilteredMoves(Tile[,] allTiles)
     {
         List<Tile> possibleMoves = GetPossibleMoves(allTiles);
-        return possibleMoves.FindAll(tile => !tile.IsLake.Value);
+        return possibleMoves.FindAll(tile => !tile.IsLake);
     }
 
     private new void OnDestroy()

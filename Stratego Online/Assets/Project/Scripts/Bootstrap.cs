@@ -27,7 +27,7 @@ public class Bootstrap : NetworkBehaviour
 
             GenerateBoardButton.onClick.AddListener(() =>
             {
-                boardManager.InitializeBoardServerRpc();
+                boardManager.InitializeBoardClientRpc();
                 GenerateBoardButton.gameObject.SetActive(false);
             });
 
@@ -62,7 +62,7 @@ public class Bootstrap : NetworkBehaviour
         {
             for (int x = 0; x < allTiles.GetLength(0); x++)
             {
-                StartTileGameClientRpc(allTiles[x, y].NetworkObjectId);
+                //StartTileGameClientRpc(allTiles[x, y].NetworkObjectId);
             }
         }
 

@@ -63,7 +63,7 @@ public class PreGameManager : NetworkBehaviour
 
             if (tile != null)
             {
-                piecePlacementManager.PlacePieceServerRpc(tile.IndexInMatrix.Value, selectedPiece.Name, clientId);
+                piecePlacementManager.PlacePieceServerRpc(tile.IndexInMatrix, selectedPiece.Name, clientId);
             }
             else
                 Debug.LogWarning("Tile = null");
