@@ -28,10 +28,12 @@ public class PiecePlacementManager : NetworkBehaviour
             {
                 GameObject pieceObject = Instantiate(pieceData.Prefab, tile.transform.position, clientId == 0 ? Quaternion.identity : Quaternion.Euler(0, 180, 0));
                 NetworkObject networkObject = pieceObject.GetComponent<NetworkObject>();
-                networkObject.Spawn(true);
 
                 Piece placedPiece = pieceObject.GetComponent<Piece>();
-                placedPiece.Initialize(tile, boardManager, pieceData, 0);
+                networkObject.Spawn(true);
+
+                InitializePieceClientRpc(networkObject.NetworkObjectId, tile.GetComponent<NetworkObject>().NetworkObjectId,
+                    pieceName, clientId);
                 tile.SetPiece(placedPiece);
 
                 boardManager.pieceCountsByPlayer[clientId][pieceData.Name] -= 1;
@@ -66,6 +68,17 @@ public class PiecePlacementManager : NetworkBehaviour
         uiManager.UpdatePieceCount(pieceName, count);
     }
 
+    [ClientRpc]
+    private void InitializePieceClientRpc(ulong pieceNOId, ulong tileNOId, string pieceDataName, ulong clientId)
+    {
+        NetworkObject pieceNO = NetworkManager.Singleton.SpawnManager.SpawnedObjects[pieceNOId];
+        Piece piece = pieceNO.GetComponent<Piece>();
+        NetworkObject tileNO = NetworkManager.Singleton.SpawnManager.SpawnedObjects[tileNOId];
+        Tile tile = tileNO.GetComponent<Tile>();
+
+        piece.ClientInitialize(tile, boardManager, config.GetPieceDataByName(pieceDataName), clientId);
+    }
+
     public void RequestPlacePiecesRandomly()
     {
         PlacePiecesRandomlyServerRpc(clientId);
@@ -76,23 +89,14 @@ public class PiecePlacementManager : NetworkBehaviour
     {
         List<Tile> availableTiles = GetAvailableTiles(clientId);
 
-        foreach (Tile tile in availableTiles)
-        {
-            Debug.Log(tile.IndexInMatrix.Value);
-        }
-
         foreach (PieceData pieceData in config.PiecesData)
         {
             int pieceCount = boardManager.pieceCountsByPlayer[clientId][pieceData.Name];
-
-            Debug.Log(pieceData + " " + pieceCount);
-
             for (int i = 0; i < pieceCount; i++)
             {
                 if (availableTiles.Count == 0) break;
                 Tile randomTile = availableTiles[Random.Range(0, availableTiles.Count)];
                 availableTiles.Remove(randomTile);
-                Debug.Log("PlacePieceServerRpc");
                 PlacePieceServerRpc(randomTile.IndexInMatrix.Value, pieceData.Name, clientId);
             }
         }

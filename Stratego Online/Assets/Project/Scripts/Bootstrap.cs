@@ -17,22 +17,24 @@ public class Bootstrap : NetworkBehaviour
 
     private void Start()
     {
-        if (!IsHost)
-            InitializeAllButton.gameObject.SetActive(false);
-
-        InitializeAllButton.onClick.AddListener(() =>
+        if (IsHost)
         {
-            InitializeClientRpc();
+            InitializeAllButton.onClick.AddListener(() =>
+            {
+                InitializeClientRpc();
+                InitializeAllButton.gameObject.SetActive(false);
+            });
+
+            GenerateBoardButton.onClick.AddListener(() =>
+            {
+                boardManager.InitializeBoardServerRpc();
+                GenerateBoardButton.gameObject.SetActive(false);
+            });
+
+            uiManager.readyButton.onClick.AddListener(StartGameServerRpc);
+        }
+        else
             InitializeAllButton.gameObject.SetActive(false);
-        });
-
-        GenerateBoardButton.onClick.AddListener(() =>
-        {
-            boardManager.InitializeBoard(gameManager);
-            GenerateBoardButton.gameObject.SetActive(false);
-        });
-
-        uiManager.readyButton.onClick.AddListener(StartGameServerRpc);
     }
 
     [ClientRpc]
@@ -41,7 +43,7 @@ public class Bootstrap : NetworkBehaviour
         Debug.Log("InitializeBootstrap");
 
         cameraController.Initialize();
-        boardManager.Initialize(boardGenerator, configManager);
+        boardManager.Initialize(boardGenerator, configManager, gameManager);
         uiManager.Initialize(preGameManager, configManager, piecePlacementManager);
         piecePlacementManager.Initialize(boardManager, uiManager, configManager);
 
@@ -52,7 +54,6 @@ public class Bootstrap : NetworkBehaviour
     private void StartGameServerRpc()
     {
         Debug.Log("StartGameServerRpc");
-
         gameManager.Initialize(boardManager, uiManager, piecePlacementManager);
 
         Tile[,] allTiles = boardManager.GetAllTiles();
@@ -61,12 +62,26 @@ public class Bootstrap : NetworkBehaviour
         {
             for (int x = 0; x < allTiles.GetLength(0); x++)
             {
-                allTiles[x, y].StartGame();
+                StartTileGameClientRpc(allTiles[x, y].NetworkObjectId);
             }
         }
 
         Destroy(preGameManager.gameObject);
 
         gameManager.StartGame();
+    }
+
+    [ClientRpc]
+    private void StartTileGameClientRpc(ulong tileNetworkObjectId)
+    {
+        NetworkObject networkObject = NetworkManager.Singleton.SpawnManager.SpawnedObjects[tileNetworkObjectId];
+        if (networkObject != null)
+        {
+            Tile tile = networkObject.GetComponent<Tile>();
+            if (tile != null)
+            {
+                tile.StartGame();
+            }
+        }
     }
 }

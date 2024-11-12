@@ -21,27 +21,30 @@ public class GameManager : MonoBehaviour
         return selectedPiece;
     }
 
-    public void SelectPiece(Piece piece)
+    public void SelectPiece(Piece piece, ulong clientId)
     {
+        Debug.Log("SelectPiece " + clientId);
         if (selectedPiece != null)
         {
-            selectedPiece.Deselect();
+            selectedPiece.Deselect(clientId);
         }
         selectedPiece = piece;
-        piece.Select();
+        piece.Select(clientId);
     }
 
-    public void DeselectPiece()
+    public void DeselectPiece(ulong clientId)
     {
+        Debug.Log("DeselectPiece " + clientId);
         if (selectedPiece != null)
         {
-            selectedPiece.Deselect();
+            selectedPiece.Deselect(clientId);
             selectedPiece = null;
         }
     }
 
-    public void TryToMoveSelectedPieceTo(Tile tile)
+    public void TryToMoveSelectedPieceTo(Tile tile, ulong clientId)
     {
+        Debug.Log("TryToMoveSelectedPieceTo " + tile + "; Client: " + clientId);
         if (CanMove(tile))
         {
             if (tile.IsOccupied.Value)
@@ -53,7 +56,7 @@ public class GameManager : MonoBehaviour
                 selectedPiece.MoveToTile(tile);
             }
         }
-        DeselectPiece();
+        DeselectPiece(clientId);
     }
 
     public void ResolveBattle(Piece attacker, Tile attackerTile, Tile defenderTile)
@@ -98,7 +101,6 @@ public class GameManager : MonoBehaviour
         selectedPiece = null;
     }
 
-
     private bool CanMove(Tile tile)
     {
         if (selectedPiece != null)
@@ -112,5 +114,4 @@ public class GameManager : MonoBehaviour
         }
         return false;
     }
-
 }

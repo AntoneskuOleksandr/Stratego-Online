@@ -743,7 +743,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8305609c72a53cb46a69a6e141802870, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tilePrefab: {fileID: 5664934801612761120, guid: 31f54ee8e235eea4a81c4dd5f2d18140, type: 3}
+  TilePrefab: {fileID: 5664934801612761120, guid: 31f54ee8e235eea4a81c4dd5f2d18140, type: 3}
 --- !u!4 &480814202
 Transform:
   m_ObjectHideFlags: 0
@@ -1025,9 +1025,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   buttonPrefab: {fileID: 5745766189238083470, guid: c121202e8c5debb4ca7db29ed5410fda, type: 3}
-  readyButton: {fileID: 829099090}
   randomPlacementButton: {fileID: 47950580}
   buttonContainer: {fileID: 821933211}
+  readyButton: {fileID: 829099090}
 --- !u!4 &728938758
 Transform:
   m_ObjectHideFlags: 0
