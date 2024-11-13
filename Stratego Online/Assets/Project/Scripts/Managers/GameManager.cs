@@ -1,7 +1,8 @@
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+public class GameManager : NetworkBehaviour
 {
     private Piece selectedPiece;
     private BoardManager boardManager;
@@ -57,6 +58,34 @@ public class GameManager : MonoBehaviour
             }
         }
         DeselectPiece(clientId);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void HandleTileActionServerRpc(Vector2Int tileIndex, ulong clientId)
+    {
+        Debug.Log("HandleTileAction " + clientId);
+
+        Tile tile = boardManager.GetTileAt(tileIndex.x, tileIndex.y);
+        Piece occupyingPiece = tile.GetPiece();
+        if (tile.IsOccupied && occupyingPiece.PlayerId == clientId)
+        {
+            if (GetSelectedPiece() == occupyingPiece)
+            {
+                DeselectPiece(clientId);
+            }
+            else if (GetSelectedPiece() == null)
+            {
+                SelectPiece(occupyingPiece, clientId);
+            }
+            else
+            {
+                TryToMoveSelectedPieceTo(tile, clientId);
+            }
+        }
+        else
+        {
+            TryToMoveSelectedPieceTo(tile, clientId);
+        }
     }
 
     public void ResolveBattle(Piece attacker, Tile attackerTile, Tile defenderTile)

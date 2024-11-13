@@ -38,43 +38,8 @@ public class Tile : MonoBehaviour
         if (!isGameStarted)
             return;
 
-        //RequestTileActionServerRpc(NetworkObjectId, NetworkManager.Singleton.LocalClientId);
-    }
-
-    [ServerRpc(RequireOwnership = false)]
-    private void RequestTileActionServerRpc(ulong tileId, ulong clientId)
-    {
-        Debug.Log(clientId);
-        Tile tile = NetworkManager.Singleton.SpawnManager.SpawnedObjects[tileId].GetComponent<Tile>();
-        if (tile != null)
-        {
-            HandleTileAction(tile, clientId);
-        }
-    }
-
-    private void HandleTileAction(Tile tile, ulong clientId)
-    {
-        Debug.Log(IsOccupied);
-        Debug.Log(clientId);
-        if (IsOccupied && tile.occupyingPiece.PlayerId == clientId)
-        {
-            if (gameManager.GetSelectedPiece() == occupyingPiece)
-            {
-                gameManager.DeselectPiece(clientId);
-            }
-            else if (gameManager.GetSelectedPiece() == null)
-            {
-                gameManager.SelectPiece(occupyingPiece, clientId);
-            }
-            else
-            {
-                gameManager.TryToMoveSelectedPieceTo(this, clientId);
-            }
-        }
-        else
-        {
-            gameManager.TryToMoveSelectedPieceTo(this, clientId);
-        }
+        Debug.Log("OnMouseDown");
+        gameManager.HandleTileActionServerRpc(IndexInMatrix, NetworkManager.Singleton.LocalClientId);
     }
 
     public void PlacePiece(Piece piece)
@@ -85,11 +50,8 @@ public class Tile : MonoBehaviour
 
     public void SetPiece(Piece piece)
     {
-        //if (IsServer)
-        {
-            occupyingPiece = piece;
-            IsOccupied = true;
-        }
+        occupyingPiece = piece;
+        IsOccupied = true;
     }
 
     public void RemovePiece()

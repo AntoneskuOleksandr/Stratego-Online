@@ -19,14 +19,14 @@ public abstract class Piece : NetworkBehaviour
         selectedYPosition = originalYPosition + 0.5f;
     }
 
-    public void ClientInitialize(Tile startTile, BoardManager boardManager, PieceData pieceData, ulong playerId)
+    public void Initialize(Tile startTile, BoardManager boardManager, PieceData pieceData, ulong playerId)
     {
         Debug.Log(playerId);
         this.PieceData = pieceData;
         this.boardManager = boardManager;
         this.PlayerId = playerId;
         currentTile = startTile;
-        transform.position = startTile.Center;
+        transform.position = currentTile.Center;
     }
 
     public int GetRank()
@@ -140,11 +140,14 @@ public abstract class Piece : NetworkBehaviour
 
     private void RaisePiece()
     {
+        Debug.Log("RaisePiece");
         transform.DOMoveY(selectedYPosition, 0.3f);
+        Debug.Log("selectedYPosition: " + selectedYPosition);
     }
 
     private void LowerPiece()
     {
+        Debug.Log("LowerPiece");
         transform.DOMoveY(originalYPosition, 0.3f);
     }
 
