@@ -77,14 +77,14 @@ public class BoardManager : NetworkBehaviour
         }
     }
 
-    public Tile GetTileAt(int x, int y)
+    public Tile GetTileAt(Vector2Int index)
     {
-        if (tiles == null || x < 0 || x >= tiles.GetLength(0) || y < 0 || y >= tiles.GetLength(1))
+        if (tiles == null || index.x < 0 || index.x >= tiles.GetLength(0) || index.y < 0 || index.y >= tiles.GetLength(1))
         {
-            Debug.Log($"Tile on ({x};{y}) is null");
+            Debug.Log($"Tile on ({index.x};{index.y}) is null");
             return null;
         }
-        return tiles[x, y].GetComponent<Tile>();
+        return tiles[index.x, index.y].GetComponent<Tile>();
     }
 
     public Tile[,] GetAllTiles()

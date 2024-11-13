@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Unity.Netcode;
-using UnityEditor.PackageManager;
 using UnityEngine;
 
 public class PiecePlacementManager : NetworkBehaviour
@@ -22,21 +21,13 @@ public class PiecePlacementManager : NetworkBehaviour
         PieceData pieceData = config.GetPieceDataByName(pieceName);
         Debug.Log(pieceData);
 
-        Tile tile = boardManager.GetTileAt(tileIndex.x, tileIndex.y);
+        Tile tile = boardManager.GetTileAt(tileIndex);
 
         if (tile != null && !tile.IsOccupied && IsTileInPlayerHalf(tile, clientId) && boardManager.pieceCountsByPlayer[clientId][pieceData.Name] > 0)
         {
             if (pieceData != null)
             {
-                GameObject pieceObject = Instantiate(pieceData.Prefab, tile.transform.position, clientId == 0 ? Quaternion.identity : Quaternion.Euler(0, 180, 0));
-                NetworkObject networkObject = pieceObject.GetComponent<NetworkObject>();
-
-                Piece placedPiece = pieceObject.GetComponent<Piece>();
-                networkObject.Spawn(true);
-
-                tile.SetPiece(placedPiece);
-                placedPiece.Initialize(tile, boardManager, pieceData, clientId);
-                InitializePieceClientRpc(networkObject.NetworkObjectId, tileIndex, pieceData.Name, clientId);
+                InitializePieceClientRpc(tileIndex, pieceData.Name, clientId);
 
                 boardManager.pieceCountsByPlayer[clientId][pieceData.Name] -= 1;
                 boardManager.SendPieceCountsToClient(clientId);
@@ -71,12 +62,12 @@ public class PiecePlacementManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void InitializePieceClientRpc(ulong pieceNetworkId, Vector2Int tileIndex, string PieceName, ulong clientId)
+    private void InitializePieceClientRpc(Vector2Int tileIndex, string PieceName, ulong clientId)
     {
-        Piece piece = NetworkManager.Singleton.SpawnManager.SpawnedObjects[pieceNetworkId].GetComponent<Piece>();
         PieceData pieceData = config.GetPieceDataByName(PieceName);
-
-        Tile tile = boardManager.GetTileAt(tileIndex.x, tileIndex.y);
+        Tile tile = boardManager.GetTileAt(tileIndex);
+        GameObject pieceGO = Instantiate(pieceData.Prefab, tile.transform.position, clientId == 0 ? Quaternion.identity : Quaternion.Euler(0, 180, 0));
+        Piece piece = pieceGO.GetComponent<Piece>();
         tile.SetPiece(piece);
         piece.Initialize(tile, boardManager, pieceData, clientId);
     }
@@ -136,14 +127,14 @@ public class PiecePlacementManager : NetworkBehaviour
     {
         if (tile != null && tile.IsOccupied && IsTileInPlayerHalf(tile, clientId))
         {
-            CmdRemovePieceServerRpc(tile.IndexInMatrix.x, tile.IndexInMatrix.y, clientId);
+            CmdRemovePieceServerRpc(tile.IndexInMatrix, clientId);
         }
     }
 
     [ServerRpc(RequireOwnership = false)]
-    private void CmdRemovePieceServerRpc(int x, int y, ulong clientId)
+    private void CmdRemovePieceServerRpc(Vector2Int pieceLocation, ulong clientId)
     {
-        Tile tile = boardManager.GetTileAt(x, y);
+        Tile tile = boardManager.GetTileAt(pieceLocation);
         Piece piece = tile.GetPiece();
         if (piece != null)
         {
