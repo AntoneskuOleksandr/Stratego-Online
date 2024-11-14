@@ -64,8 +64,9 @@ public class GameManager : NetworkBehaviour
     [ServerRpc]
     public void SelectPieceServerRpc(Vector2Int pieceLocation, ulong clientId)
     {
-        selectedPieces[clientId] = boardManager.GetTileAt(pieceLocation).GetPiece();
+        Debug.Log("SelectPieceServerRpc " + clientId);
         SelectPieceClientRpc(pieceLocation, clientId, clientRpcParams);
+        selectedPieces[clientId] = boardManager.GetTileAt(pieceLocation).GetPiece();
     }
 
     [ClientRpc]
@@ -80,8 +81,8 @@ public class GameManager : NetworkBehaviour
     [ServerRpc]
     public void DeselectPieceServerRpc(ulong clientId)
     {
-        selectedPieces[clientId] = null;
         DeselectPieceClientRpc(clientId, clientRpcParams);
+        selectedPieces[clientId] = null;
     }
 
     [ClientRpc]
@@ -108,7 +109,7 @@ public class GameManager : NetworkBehaviour
             Debug.Log("CanMove " + selectedPiece + " " + tile.IndexInMatrix);
             if (tile.IsOccupied)
             {
-                ResolveBattle(selectedPiece, selectedPiece.GetTile(), tile, clientId);
+                ResolveBattleClientRpc(selectedPiece.GetTile().IndexInMatrix, tileIndex, clientId);
             }
             else
             {
@@ -137,9 +138,16 @@ public class GameManager : NetworkBehaviour
         return possibleMoves.Contains(tile);
     }
 
-    public void ResolveBattle(Piece attacker, Tile attackerTile, Tile defenderTile, ulong clientId)
+    [ClientRpc]
+    public void ResolveBattleClientRpc(Vector2Int attackerIndex, Vector2Int defenderIndex, ulong clientId)
     {
+        Debug.Log("ResolveBattle");
+        Tile attackerTile = boardManager.GetTileAt(attackerIndex);
+        Tile defenderTile = boardManager.GetTileAt(defenderIndex);
+
+        Piece attacker = attackerTile.GetPiece();
         Piece defender = defenderTile.GetPiece();
+
         if (defender != null && attacker.PlayerId != defender.PlayerId)
         {
             int attackerRank = attacker.GetRank();
@@ -175,8 +183,6 @@ public class GameManager : NetworkBehaviour
                 defenderTile.RemovePiece();
             }
         }
-
         selectedPieces[clientId] = null;
     }
-
 }
