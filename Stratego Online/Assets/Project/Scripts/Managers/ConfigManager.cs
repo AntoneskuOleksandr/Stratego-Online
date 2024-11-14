@@ -16,6 +16,11 @@ public class ConfigManager : ScriptableObject
 
     public PieceData GetPieceDataByName(string name)
     {
-        return PiecesData.Find(piece => piece.Name == name);
+        PieceData pieceData = PiecesData.Find(piece => piece.Name == name);
+
+        if (pieceData == null)
+            Debug.LogError("There is no PieceData with name: " + name);
+
+        return pieceData;
     }
 }

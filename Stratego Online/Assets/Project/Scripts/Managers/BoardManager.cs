@@ -60,10 +60,10 @@ public class BoardManager : NetworkBehaviour
         }
     }
 
-    [ServerRpc]
-    public void InitializeBoardServerRpc()
+    [ClientRpc]
+    public void InitializeBoardClientRpc()
     {
-        Debug.Log("InitializeBoard");
+        Debug.Log("InitializeBoardServerRpc");
 
         tiles = boardGenerator.GenerateBoard();
 
@@ -72,36 +72,19 @@ public class BoardManager : NetworkBehaviour
             for (int x = 0; x < tiles.GetLength(0); x++)
             {
                 Tile tileComponent = tiles[x, y].GetComponent<Tile>();
-                tileComponent.ServerInitialize(new Vector2Int(x, y), tileComponent.IsLake.Value, gameManager);
-                InitializeTileClientRpc(tileComponent.NetworkObjectId, tileComponent.IsLake.Value, x, y);
+                tileComponent.Initialize(new Vector2Int(x, y), gameManager, config.TileColorHighlighted);
             }
         }
     }
 
-    [ClientRpc]
-    private void InitializeTileClientRpc(ulong networkObjectId, bool isLake, int x, int y)
+    public Tile GetTileAt(Vector2Int index)
     {
-        NetworkObject networkObject = NetworkManager.Singleton.SpawnManager.SpawnedObjects[networkObjectId];
-        if (networkObject != null)
+        if (tiles == null || index.x < 0 || index.x >= tiles.GetLength(0) || index.y < 0 || index.y >= tiles.GetLength(1))
         {
-            Tile tile = networkObject.GetComponent<Tile>();
-            if (tile != null)
-            {
-                Material tileMaterial = isLake ? config.TileMaterialLake :
-                    (x + y) % 2 == 0 ? config.TileMaterialWhite : config.TileMaterialBlack;
-                tile.ClientInitialize(config.TileColorHighlighted, tileMaterial);
-            }
-        }
-    }
-
-    public Tile GetTileAt(int x, int y)
-    {
-        if (tiles == null || x < 0 || x >= tiles.GetLength(0) || y < 0 || y >= tiles.GetLength(1))
-        {
-            Debug.Log($"Tile on ({x};{y}) is null");
+            Debug.Log($"Tile on ({index.x};{index.y}) is null");
             return null;
         }
-        return tiles[x, y].GetComponent<Tile>();
+        return tiles[index.x, index.y].GetComponent<Tile>();
     }
 
     public Tile[,] GetAllTiles()

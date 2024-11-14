@@ -28,7 +28,7 @@ public class BoardGenerator : MonoBehaviour
                 if (IsLakeTile(x, y))
                 {
                     tiles[x, y] = GenerateSingleTile(config.TileSize, x, y, LayerMask.NameToLayer("Lake"), config.TileMaterialLake);
-                    tiles[x, y].GetComponent<Tile>().IsLake.Value = true;
+                    tiles[x, y].GetComponent<Tile>().IsLake = true;
                 }
                 else
                 {
@@ -58,19 +58,9 @@ public class BoardGenerator : MonoBehaviour
         GameObject tileObject = Instantiate(TilePrefab);
         tileObject.name = string.Format("X:{0}, Y:{1}", x, y);
 
-        MeshRenderer renderer = tileObject.GetComponent<MeshRenderer>();
-        if (renderer != null)
-        {
-            renderer.material = material;
-        }
+        tileObject.GetComponent<Tile>().SetMaterial(material);
 
         tileObject.layer = layer;
-
-        NetworkObject networkObject = tileObject.GetComponent<NetworkObject>();
-        if (networkObject != null)
-        {
-            networkObject.Spawn(true);
-        }
 
         tileObject.transform.parent = this.transform;
         tileObject.transform.localPosition = new Vector3(x * tileSize, 0f, y * tileSize);

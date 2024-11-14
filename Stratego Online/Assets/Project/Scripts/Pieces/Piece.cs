@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
-using Unity.Netcode;
 
-public abstract class Piece : NetworkBehaviour
+public abstract class Piece : MonoBehaviour
 {
     public PieceData PieceData { get; private set; }
     public ulong PlayerId { get; private set; }
@@ -19,14 +18,14 @@ public abstract class Piece : NetworkBehaviour
         selectedYPosition = originalYPosition + 0.5f;
     }
 
-    public void ClientInitialize(Tile startTile, BoardManager boardManager, PieceData pieceData, ulong playerId)
+    public void Initialize(Tile startTile, BoardManager boardManager, PieceData pieceData, ulong playerId)
     {
         Debug.Log(playerId);
         this.PieceData = pieceData;
         this.boardManager = boardManager;
         this.PlayerId = playerId;
         currentTile = startTile;
-        transform.position = startTile.Center;
+        transform.position = currentTile.Center;
     }
 
     public int GetRank()
@@ -49,81 +48,42 @@ public abstract class Piece : NetworkBehaviour
         return PieceData.Name == "Miner" || PieceData.Name == "Spy";
     }
 
-    public void Select(ulong clientId)
+    public void Select()
     {
-        RequestHighlightMovesServerRpc(NetworkObjectId, clientId);
+        HighlightMoves(GetPossibleMoves(boardManager.GetAllTiles()));
+        RaisePiece();
     }
 
-    public void Deselect(ulong clientId)
+    public void Deselect()
     {
-        RequestUnhighlightMovesServerRpc(NetworkObjectId, clientId);
+        UnhighlightMoves();
         LowerPiece();
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    private void RequestHighlightMovesServerRpc(ulong pieceId, ulong clientId)
+    private void HighlightMoves(List<Tile> availableTiles)
     {
-        Piece piece = NetworkManager.Singleton.SpawnManager.SpawnedObjects[pieceId].GetComponent<Piece>();
-        if (piece != null)
-        {
-            List<Vector2Int> movePositions = piece.GetFilteredMovePositions();
-            HighlightMovesClientRpc(movePositions.ToArray(), clientId);
-        }
-    }
+        Debug.Log("HighlightMoves");
+        highlightedTiles.Clear();
 
-    [ClientRpc]
-    private void HighlightMovesClientRpc(Vector2Int[] movePositions, ulong clientId)
-    {
-        Debug.Log("HighlightMovesClientRpc");
-        Debug.Log(NetworkManager.Singleton.LocalClientId);
-        Debug.Log(clientId);
-        if (NetworkManager.Singleton.LocalClientId == clientId)
+        foreach (Tile tile in availableTiles)
         {
-            Debug.Log(movePositions.Length);
-            highlightedTiles.Clear();
-            foreach (Vector2Int pos in movePositions)
+            if (tile != null)
             {
-                Debug.Log(pos);
-                Tile tile = boardManager.GetTileAt(pos.x, pos.y);
-                Debug.Log(boardManager);
-                if (tile != null)
-                {
-                    tile.Highlight();
-                    highlightedTiles.Add(tile);
-                }
+                tile.Highlight();
+                highlightedTiles.Add(tile);
             }
-            RaisePiece();
+            else
+                Debug.Log("Tile = null");
         }
     }
 
-    [ServerRpc(RequireOwnership = false)]
-    private void RequestUnhighlightMovesServerRpc(ulong pieceId, ulong clientId)
+    private void UnhighlightMoves()
     {
-        UnhighlightMovesClientRpc(clientId);
-    }
-
-    [ClientRpc]
-    private void UnhighlightMovesClientRpc(ulong clientId)
-    {
-        if (NetworkManager.Singleton.LocalClientId == clientId)
+        foreach (Tile tile in highlightedTiles)
         {
-            foreach (Tile tile in highlightedTiles)
-            {
-                tile.Unhighlight();
-            }
-            highlightedTiles.Clear();
+            tile.Unhighlight();
         }
-    }
-
-    private List<Vector2Int> GetFilteredMovePositions()
-    {
-        List<Tile> possibleMoves = GetFilteredMoves(boardManager.GetAllTiles());
-        List<Vector2Int> movePositions = new List<Vector2Int>();
-        foreach (Tile tile in possibleMoves)
-        {
-            movePositions.Add(tile.IndexInMatrix.Value);
-        }
-        return movePositions;
+        highlightedTiles.Clear();
     }
 
     public void MoveToTile(Tile newTile)
@@ -135,29 +95,26 @@ public abstract class Piece : NetworkBehaviour
         currentTile = newTile;
         newTile.PlacePiece(this);
         transform.DOMove(newTile.Center, 0.3f);
-        Deselect(PlayerId);
+        Deselect();
     }
 
     private void RaisePiece()
     {
+        Debug.Log("RaisePiece");
         transform.DOMoveY(selectedYPosition, 0.3f);
+        Debug.Log("selectedYPosition: " + selectedYPosition);
     }
 
     private void LowerPiece()
     {
+        Debug.Log("LowerPiece");
         transform.DOMoveY(originalYPosition, 0.3f);
     }
 
     public abstract List<Tile> GetPossibleMoves(Tile[,] allTiles);
 
-    protected List<Tile> GetFilteredMoves(Tile[,] allTiles)
+    private void OnDestroy()
     {
-        List<Tile> possibleMoves = GetPossibleMoves(allTiles);
-        return possibleMoves.FindAll(tile => !tile.IsLake.Value);
-    }
-
-    private new void OnDestroy()
-    {
-        RequestUnhighlightMovesServerRpc(NetworkObjectId, PlayerId);
+        UnhighlightMoves();
     }
 }

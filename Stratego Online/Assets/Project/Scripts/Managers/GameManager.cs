@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+public class GameManager : NetworkBehaviour
 {
-    private Piece selectedPiece;
+    private Dictionary<ulong, Piece> selectedPieces = new Dictionary<ulong, Piece>();
     private BoardManager boardManager;
+    private ClientRpcParams clientRpcParams = new ClientRpcParams { };
+    private bool isHostTurn = true; 
 
     public void Initialize(BoardManager boardManager, UIManager uiManager, PiecePlacementManager piecePlacementManager)
     {
@@ -16,52 +19,132 @@ public class GameManager : MonoBehaviour
         Debug.Log("Game has started!");
     }
 
-    public Piece GetSelectedPiece()
+    public Piece GetSelectedPiece(ulong clientId)
     {
-        return selectedPiece;
+        return selectedPieces.ContainsKey(clientId) ? selectedPieces[clientId] : null;
     }
 
-    public void SelectPiece(Piece piece, ulong clientId)
+    [ServerRpc(RequireOwnership = false)]
+    public void HandleTileActionServerRpc(Vector2Int tileIndex, ulong clientId)
     {
-        Debug.Log("SelectPiece " + clientId);
-        if (selectedPiece != null)
+        if ((IsHostPlayer(clientId) && !isHostTurn) || (!IsHostPlayer(clientId) && isHostTurn))
         {
-            selectedPiece.Deselect(clientId);
+            return;
         }
-        selectedPiece = piece;
-        piece.Select(clientId);
-    }
 
-    public void DeselectPiece(ulong clientId)
-    {
-        Debug.Log("DeselectPiece " + clientId);
-        if (selectedPiece != null)
+        clientRpcParams = new ClientRpcParams
         {
-            selectedPiece.Deselect(clientId);
-            selectedPiece = null;
-        }
-    }
-
-    public void TryToMoveSelectedPieceTo(Tile tile, ulong clientId)
-    {
-        Debug.Log("TryToMoveSelectedPieceTo " + tile + "; Client: " + clientId);
-        if (CanMove(tile))
-        {
-            if (tile.IsOccupied.Value)
+            Send = new ClientRpcSendParams
             {
-                ResolveBattle(selectedPiece, selectedPiece.GetTile(), tile);
+                TargetClientIds = new ulong[] { clientId }
+            }
+        };
+
+        Tile tile = boardManager.GetTileAt(tileIndex);
+        Piece occupyingPiece = tile.GetPiece();
+
+        if (tile.IsOccupied && occupyingPiece.PlayerId == clientId)
+        {
+            if (GetSelectedPiece(clientId) == null)
+            {
+                SelectPieceServerRpc(tileIndex, clientId);
+            }
+            else if (GetSelectedPiece(clientId) == occupyingPiece)
+            {
+                DeselectPieceServerRpc(clientId);
+            }
+            else if (occupyingPiece.PlayerId == clientId)
+            {
+                DeselectPieceServerRpc(clientId);
+                SelectPieceServerRpc(tileIndex, clientId);
+            }
+        }
+        else if (GetSelectedPiece(clientId) != null)
+        {
+            TryToMoveSelectedPieceServerRpc(tileIndex, clientId);
+        }
+    }
+
+    [ServerRpc]
+    public void SelectPieceServerRpc(Vector2Int pieceLocation, ulong clientId)
+    {
+        SelectPieceClientRpc(pieceLocation, clientId, clientRpcParams);
+        selectedPieces[clientId] = boardManager.GetTileAt(pieceLocation).GetPiece();
+    }
+
+    [ClientRpc]
+    public void SelectPieceClientRpc(Vector2Int pieceLocation, ulong clientId, ClientRpcParams clientRpcParams)
+    {
+        Piece piece = boardManager.GetTileAt(pieceLocation).GetPiece();
+        selectedPieces[clientId] = piece;
+        piece.Select();
+    }
+
+    [ServerRpc]
+    public void DeselectPieceServerRpc(ulong clientId)
+    {
+        DeselectPieceClientRpc(clientId, clientRpcParams);
+        selectedPieces[clientId] = null;
+    }
+
+    [ClientRpc]
+    public void DeselectPieceClientRpc(ulong clientId, ClientRpcParams clientRpcParams)
+    {
+        if (GetSelectedPiece(clientId) != null)
+        {
+            GetSelectedPiece(clientId).Deselect();
+            selectedPieces[clientId] = null;
+        }
+    }
+
+    [ServerRpc]
+    public void TryToMoveSelectedPieceServerRpc(Vector2Int tileIndex, ulong clientId)
+    {
+        Tile tile = boardManager.GetTileAt(tileIndex);
+        Piece selectedPiece = GetSelectedPiece(clientId);
+
+        if (CanMove(selectedPiece, tile))
+        {
+            if (tile.IsOccupied)
+            {
+                ResolveBattleClientRpc(selectedPiece.GetTile().IndexInMatrix, tileIndex, clientId);
             }
             else
             {
-                selectedPiece.MoveToTile(tile);
+                MovePieceClientRpc(selectedPiece.GetTile().IndexInMatrix, tileIndex);
+                DeselectPieceServerRpc(clientId);
+                SwitchTurn(); 
             }
         }
-        DeselectPiece(clientId);
+        else if (tile.IsOccupied && tile.GetPiece().PlayerId == clientId)
+        {
+            DeselectPieceServerRpc(clientId);
+            SelectPieceServerRpc(tileIndex, clientId);
+        }
     }
 
-    public void ResolveBattle(Piece attacker, Tile attackerTile, Tile defenderTile)
+    [ClientRpc]
+    public void MovePieceClientRpc(Vector2Int pieceLocation, Vector2Int targetTileIndex)
     {
+        Piece piece = boardManager.GetTileAt(pieceLocation).GetPiece();
+        piece.MoveToTile(boardManager.GetTileAt(targetTileIndex));
+    }
+
+    private bool CanMove(Piece piece, Tile tile)
+    {
+        List<Tile> possibleMoves = piece.GetPossibleMoves(boardManager.GetAllTiles());
+        return possibleMoves.Contains(tile);
+    }
+
+    [ClientRpc]
+    public void ResolveBattleClientRpc(Vector2Int attackerIndex, Vector2Int defenderIndex, ulong clientId)
+    {
+        Tile attackerTile = boardManager.GetTileAt(attackerIndex);
+        Tile defenderTile = boardManager.GetTileAt(defenderIndex);
+
+        Piece attacker = attackerTile.GetPiece();
         Piece defender = defenderTile.GetPiece();
+
         if (defender != null && attacker.PlayerId != defender.PlayerId)
         {
             int attackerRank = attacker.GetRank();
@@ -97,21 +180,18 @@ public class GameManager : MonoBehaviour
                 defenderTile.RemovePiece();
             }
         }
-
-        selectedPiece = null;
+        selectedPieces[clientId] = null;
+        SwitchTurn(); 
     }
 
-    private bool CanMove(Tile tile)
+    private void SwitchTurn()
     {
-        if (selectedPiece != null)
-        {
-            List<Tile> possibleMoves = selectedPiece.GetPossibleMoves(boardManager.GetAllTiles());
+        isHostTurn = !isHostTurn;
+        Debug.Log("Turn switched. Is host turn: " + isHostTurn);
+    }
 
-            if (possibleMoves.Contains(tile))
-            {
-                return true;
-            }
-        }
-        return false;
+    private bool IsHostPlayer(ulong clientId)
+    {
+        return NetworkManager.Singleton.LocalClientId == clientId;
     }
 }
