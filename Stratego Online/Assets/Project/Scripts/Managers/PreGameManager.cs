@@ -1,22 +1,17 @@
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.UI;
 
 public class PreGameManager : NetworkBehaviour
 {
-    [SerializeField] private Button GenerateBoardButton;
     public UnityEvent OnStartGame;
     private BoardManager boardManager;
     private UIManager uiManager;
     private PiecePlacementManager piecePlacementManager;
     private ulong clientId;
 
-    private void Start()
+    public override void OnNetworkSpawn()
     {
-        if (!IsHost)
-            GenerateBoardButton.gameObject.SetActive(false);
-
         clientId = NetworkManager.Singleton.LocalClientId;
     }
 

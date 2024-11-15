@@ -63,7 +63,7 @@ public class BoardManager : NetworkBehaviour
     [ClientRpc]
     public void InitializeBoardClientRpc()
     {
-        Debug.Log("InitializeBoardServerRpc");
+        Debug.Log("InitializeBoardClientRpc");
 
         tiles = boardGenerator.GenerateBoard();
 

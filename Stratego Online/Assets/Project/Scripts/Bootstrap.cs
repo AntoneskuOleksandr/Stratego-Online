@@ -1,6 +1,5 @@
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class Bootstrap : NetworkBehaviour
 {
@@ -12,29 +11,32 @@ public class Bootstrap : NetworkBehaviour
     [SerializeField] private PiecePlacementManager piecePlacementManager;
     [SerializeField] private UIManager uiManager;
     [SerializeField] private CameraController cameraController;
-    [SerializeField] private Button InitializeAllButton;
-    [SerializeField] private Button GenerateBoardButton;
+    private int clientsReadyToPlay = 0;
+    private int connectedClient = 0;
 
-    private void Start()
+    public override void OnNetworkSpawn()
     {
-        if (IsHost)
-        {
-            InitializeAllButton.onClick.AddListener(() =>
-            {
-                InitializeClientRpc();
-                InitializeAllButton.gameObject.SetActive(false);
-            });
+        OnClientConnectedServerRpc();
 
-            GenerateBoardButton.onClick.AddListener(() =>
-            {
-                boardManager.InitializeBoardClientRpc();
-                GenerateBoardButton.gameObject.SetActive(false);
-            });
+        uiManager.readyButton.onClick.AddListener(TryToStartGameServerRpc);
+    }
 
-            uiManager.readyButton.onClick.AddListener(StartGameClientRpc);
-        }
-        else
-            InitializeAllButton.gameObject.SetActive(false);
+    [ServerRpc(RequireOwnership = false)]
+    public void OnClientConnectedServerRpc()
+    {
+        connectedClient++;
+
+        Debug.Log("OnClientConnectedServerRpc");
+
+        if (connectedClient == NetworkManager.ConnectedClients.Count)
+            InitializeGameSetupServerRpc();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void InitializeGameSetupServerRpc()
+    {
+        InitializeClientRpc();
+        GenerateBoardClientRpc();
     }
 
     [ClientRpc]
@@ -48,6 +50,24 @@ public class Bootstrap : NetworkBehaviour
         piecePlacementManager.Initialize(boardManager, uiManager, configManager);
 
         preGameManager.Initialize(boardManager, uiManager, piecePlacementManager);
+    }
+
+    [ClientRpc]
+    private void GenerateBoardClientRpc()
+    {
+        Debug.Log("GenerateBoardClientRpc");
+
+        boardManager.InitializeBoardClientRpc();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void TryToStartGameServerRpc()
+    {
+        Debug.Log("TryToStartGame");
+        clientsReadyToPlay++;
+
+        if (clientsReadyToPlay == NetworkManager.ConnectedClients.Count)
+            StartGameClientRpc();
     }
 
     [ClientRpc]
