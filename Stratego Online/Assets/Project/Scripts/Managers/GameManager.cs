@@ -187,7 +187,6 @@ public class GameManager : NetworkBehaviour
     private void SwitchTurn()
     {
         isHostTurn = !isHostTurn;
-        Debug.Log("Turn switched. Is host turn: " + isHostTurn);
     }
 
     private bool IsHostPlayer(ulong clientId)

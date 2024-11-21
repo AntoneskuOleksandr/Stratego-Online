@@ -20,7 +20,6 @@ public abstract class Piece : MonoBehaviour
 
     public void Initialize(Tile startTile, BoardManager boardManager, PieceData pieceData, ulong playerId)
     {
-        Debug.Log(playerId);
         this.PieceData = pieceData;
         this.boardManager = boardManager;
         this.PlayerId = playerId;
@@ -62,7 +61,6 @@ public abstract class Piece : MonoBehaviour
 
     private void HighlightMoves(List<Tile> availableTiles)
     {
-        Debug.Log("HighlightMoves");
         highlightedTiles.Clear();
 
         foreach (Tile tile in availableTiles)
@@ -100,14 +98,11 @@ public abstract class Piece : MonoBehaviour
 
     private void RaisePiece()
     {
-        Debug.Log("RaisePiece");
         transform.DOMoveY(selectedYPosition, 0.3f);
-        Debug.Log("selectedYPosition: " + selectedYPosition);
     }
 
     private void LowerPiece()
     {
-        Debug.Log("LowerPiece");
         transform.DOMoveY(originalYPosition, 0.3f);
     }
 

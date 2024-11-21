@@ -4,67 +4,68 @@ using UnityEngine;
 
 public class BoardManager : NetworkBehaviour
 {
-    public Dictionary<ulong, Dictionary<string, int>> pieceCountsByPlayer = new Dictionary<ulong, Dictionary<string, int>>();
+    public Dictionary<ulong, Dictionary<string, int>> pieceCountsByPlayer;
     private BoardGenerator boardGenerator;
     private GameObject[,] tiles;
     private ConfigManager config;
     private GameManager gameManager;
+    private UIManager uiManager;
 
-    public void Initialize(BoardGenerator boardGenerator, ConfigManager config, GameManager gameManager)
+    public void Initialize(BoardGenerator boardGenerator, ConfigManager config, GameManager gameManager, UIManager uiManager)
     {
         this.boardGenerator = boardGenerator;
         this.config = config;
         this.gameManager = gameManager;
+        this.uiManager = uiManager;
 
+        pieceCountsByPlayer = new Dictionary<ulong, Dictionary<string, int>>();
         boardGenerator.Initialize(config);
     }
 
-    [ServerRpc(RequireOwnership = false)]
+    [ServerRpc]
     public void InitializePieceCountsServerRpc()
     {
-        ulong clientsCount = 1;
+        var connectedClients = NetworkManager.Singleton.ConnectedClientsIds;
 
-        if (IsHost)
-            clientsCount = 2;
-
-        for (ulong i = 0; i < clientsCount; i++)
+        for (int i = 0; i < connectedClients.Count; i++)
         {
-            pieceCountsByPlayer[i] = new Dictionary<string, int>();
+            ulong clientId = connectedClients[i];
+            pieceCountsByPlayer[clientId] = new Dictionary<string, int>();
+
             foreach (var pieceData in config.PiecesData)
             {
-                pieceCountsByPlayer[i][pieceData.Name] = pieceData.Count;
+                pieceCountsByPlayer[clientId][pieceData.Name] = pieceData.Count;
             }
-            Debug.Log("Pieces count initialized for client with id: " + i);
-            SendPieceCountsToClient(i);
+
+            Debug.Log(pieceCountsByPlayer[clientId]);
+
+            var pieceCountsList = new List<KeyValuePair<string, int>>(pieceCountsByPlayer[clientId]);
+
+            foreach (var pieceCount in pieceCountsList)
+            {
+                UpdatePieceCountClientRpc(clientId, pieceCount.Key, pieceCount.Value);
+            }
         }
     }
 
     [ClientRpc]
-    private void UpdateClientPieceCountClientRpc(ulong clientId, string pieceName, int count)
+    public void UpdatePieceCountClientRpc(ulong clientId, string pieceName, int count)
     {
-        Debug.Log("Client: " + clientId + "; Piece name: " + pieceName + "; Count: " + count);
-        if (pieceCountsByPlayer.ContainsKey(clientId))
+        if (!pieceCountsByPlayer.ContainsKey(clientId))
         {
-            Debug.Log(pieceCountsByPlayer[clientId][pieceName]);
-            Debug.Log(count);
-            pieceCountsByPlayer[clientId][pieceName] = count;
+            pieceCountsByPlayer[clientId] = new Dictionary<string, int>();
+            Debug.Log("Created new player list");
         }
-    }
 
-    public void SendPieceCountsToClient(ulong clientId)
-    {
-        foreach (var pieceCount in pieceCountsByPlayer[clientId])
-        {
-            if (!IsHost)
-                UpdateClientPieceCountClientRpc(clientId, pieceCount.Key, pieceCount.Value);
-        }
-    }
+        pieceCountsByPlayer[clientId][pieceName] = count;
 
+        if (NetworkManager.Singleton.LocalClientId == clientId)
+            uiManager.UpdatePieceCount(pieceName, count);
+    }
+    
     [ClientRpc]
     public void InitializeBoardClientRpc()
     {
-        Debug.Log("InitializeBoardClientRpc");
-
         tiles = boardGenerator.GenerateBoard();
 
         for (int y = 0; y < tiles.GetLength(1); y++)

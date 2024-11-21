@@ -38,7 +38,6 @@ public class Tile : MonoBehaviour
         if (!isGameStarted)
             return;
 
-        Debug.Log("OnMouseDown");
         gameManager.HandleTileActionServerRpc(IndexInMatrix, NetworkManager.Singleton.LocalClientId);
     }
 

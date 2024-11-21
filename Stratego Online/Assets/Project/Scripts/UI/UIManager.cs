@@ -13,21 +13,22 @@ public class UIManager : MonoBehaviour
     private List<PieceData> originalPiecesData;
     private Dictionary<string, PieceButton> pieceButtons = new Dictionary<string, PieceButton>();
     private PieceData selectedPiece;
-    private PreGameManager gameManager;
+    private PreGameManager preGameManager;
+    private PiecePlacementManager piecePlacementManager;
 
-    public void Initialize(PreGameManager gameManager, ConfigManager config, PiecePlacementManager piecePlacementManager)
+    public void Initialize(PreGameManager preGameManager, ConfigManager config, PiecePlacementManager piecePlacementManager)
     {
-        this.gameManager = gameManager;
+        this.preGameManager = preGameManager;
+        this.piecePlacementManager = piecePlacementManager;
         originalPiecesData = config.PiecesData;
         GenerateButtons();
         readyButton.onClick.AddListener(() =>
         {
-            gameManager.StartGame();
-            HideUI();
+            OnReadyButtonClick();
         });
         randomPlacementButton.onClick.AddListener(() =>
         {
-            piecePlacementManager.RequestPlacePiecesRandomly(NetworkManager.Singleton.LocalClientId);
+            piecePlacementManager.PlacePiecesRandomlyServerRpc(NetworkManager.Singleton.LocalClientId);
             randomPlacementButton.gameObject.SetActive(false);
         });
         readyButton.interactable = false;
@@ -56,7 +57,7 @@ public class UIManager : MonoBehaviour
         if (pieceCounts[pieceData.Name] > 0)
         {
             selectedPiece = pieceData;
-            gameManager.SelectPiece(selectedPiece);
+            preGameManager.SelectPiece(selectedPiece);
         }
         else
         {
@@ -64,25 +65,29 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    private void OnReadyButtonClick()
+    {
+        HideUI();
+        Destroy(preGameManager.gameObject);
+    }
+
+    private void OnRandomPlacementButtonClick()
+    {
+        piecePlacementManager.PlacePiecesRandomlyServerRpc(NetworkManager.Singleton.LocalClientId);
+        randomPlacementButton.gameObject.SetActive(false);
+    }
+
     public void UpdatePieceCount(string pieceName, int count)
     {
-        Debug.Log("UpdatePieceCount; Client: " + NetworkManager.Singleton.LocalClientId);
         if (pieceButtons.ContainsKey(pieceName))
         {
             pieceCounts[pieceName] = count;
             pieceButtons[pieceName].UpdatePieceCount(count);
             CheckReadyButtonStatus();
+
+            if (count == 0)
+                preGameManager.DeselectPiece();
         }
-    }
-
-    public PieceData GetSelectedPiece()
-    {
-        return selectedPiece;
-    }
-
-    public void DeselectPiece()
-    {
-        selectedPiece = null;
     }
 
     public int GetPieceCurrentCount(string name)
@@ -92,7 +97,7 @@ public class UIManager : MonoBehaviour
 
     private void HideUI()
     {
-        this.gameObject.SetActive(false);
+        gameObject.SetActive(false);
     }
 
     private void CheckReadyButtonStatus()

@@ -1,13 +1,12 @@
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.Events;
 
 public class PreGameManager : NetworkBehaviour
 {
-    public UnityEvent OnStartGame;
     private BoardManager boardManager;
     private UIManager uiManager;
     private PiecePlacementManager piecePlacementManager;
+    private PieceData selectedPiece;
     private ulong clientId;
 
     public override void OnNetworkSpawn()
@@ -20,55 +19,44 @@ public class PreGameManager : NetworkBehaviour
         this.boardManager = boardManager;
         this.uiManager = uiManager;
         this.piecePlacementManager = piecePlacementManager;
-        InitializePieceCounts();
-    }
 
-    private void InitializePieceCounts()
-    {
-        boardManager.InitializePieceCountsServerRpc();
-    }
+        Debug.Log("PreGameManager: Initialize");
 
-    public void StartGame()
-    {
-        OnStartGame.Invoke();
+        if (IsHost)
+            boardManager.InitializePieceCountsServerRpc();
     }
 
     private void Update()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            TryPlacePiece();
+            if (GetTileUnderMouse() != null)
+                TryPlacePiece();
         }
         else if (Input.GetMouseButtonDown(1))
         {
-            TryRemovePiece();
+            if (GetTileUnderMouse() != null)
+                piecePlacementManager.TryToRemovePieceServerRpc(GetTileUnderMouse().IndexInMatrix, clientId);
         }
+    }
+
+    public void SelectPiece(PieceData pieceData)
+    {
+        selectedPiece = pieceData;
+    }
+
+    public void DeselectPiece()
+    {
+        selectedPiece = null;
     }
 
     private void TryPlacePiece()
     {
-        if (uiManager == null)
-            return;
-
-        PieceData selectedPiece = uiManager.GetSelectedPiece();
-
         if (selectedPiece != null)
         {
             Tile tile = GetTileUnderMouse();
-
-            if (tile != null)
-            {
-                piecePlacementManager.PlacePieceServerRpc(tile.IndexInMatrix, selectedPiece.Name, clientId);
-            }
-            else
-                Debug.LogWarning("Tile = null");
+            piecePlacementManager.TryToPlacePieceServerRpc(tile.IndexInMatrix, selectedPiece.Name, clientId);
         }
-    }
-
-    private void TryRemovePiece()
-    {
-        Tile tile = GetTileUnderMouse();
-        piecePlacementManager.TryRemovePiece(tile, clientId);
     }
 
     private Tile GetTileUnderMouse()
@@ -81,25 +69,8 @@ public class PreGameManager : NetworkBehaviour
         return null;
     }
 
-    public void SelectPiece(Piece piece)
-    {
-    }
-
-    public void DeselectPiece()
-    {
-    }
-
     public Piece GetSelectedPiece()
     {
         return null;
-    }
-
-    public void TryToMoveSelectedPieceTo(Tile tile)
-    {
-    }
-
-    public void SelectPiece(PieceData pieceData)
-    {
-        // Handle piece selection as needed
     }
 }

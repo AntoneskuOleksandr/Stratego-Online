@@ -26,8 +26,6 @@ public class Bootstrap : NetworkBehaviour
     {
         connectedClient++;
 
-        Debug.Log("OnClientConnectedServerRpc");
-
         if (connectedClient == NetworkManager.ConnectedClients.Count)
             InitializeGameSetupServerRpc();
     }
@@ -42,12 +40,10 @@ public class Bootstrap : NetworkBehaviour
     [ClientRpc]
     private void InitializeClientRpc()
     {
-        Debug.Log("InitializeBootstrap");
-
         cameraController.Initialize();
-        boardManager.Initialize(boardGenerator, configManager, gameManager);
+        boardManager.Initialize(boardGenerator, configManager, gameManager, uiManager);
         uiManager.Initialize(preGameManager, configManager, piecePlacementManager);
-        piecePlacementManager.Initialize(boardManager, uiManager, configManager);
+        piecePlacementManager.Initialize(boardManager, configManager);
 
         preGameManager.Initialize(boardManager, uiManager, piecePlacementManager);
     }
@@ -55,15 +51,12 @@ public class Bootstrap : NetworkBehaviour
     [ClientRpc]
     private void GenerateBoardClientRpc()
     {
-        Debug.Log("GenerateBoardClientRpc");
-
         boardManager.InitializeBoardClientRpc();
     }
 
     [ServerRpc(RequireOwnership = false)]
     private void TryToStartGameServerRpc()
     {
-        Debug.Log("TryToStartGame");
         clientsReadyToPlay++;
 
         if (clientsReadyToPlay == NetworkManager.ConnectedClients.Count)
@@ -73,7 +66,6 @@ public class Bootstrap : NetworkBehaviour
     [ClientRpc]
     private void StartGameClientRpc()
     {
-        Debug.Log("StartGameClientRpc");
         gameManager.Initialize(boardManager, uiManager, piecePlacementManager);
 
         Tile[,] allTiles = boardManager.GetAllTiles();
