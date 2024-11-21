@@ -11,7 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Project/Scenes/Stratego.unity
     guid: 9e9d3b56e33ab5544aedfc03eb2e978a
-  - enabled: 1
+  - enabled: 0
     path: Assets/NGO_Minimal_Setup/NGO_Setup.unity
     guid: 219de9a268c36c843b2288853d319bb3
   m_configObjects:
