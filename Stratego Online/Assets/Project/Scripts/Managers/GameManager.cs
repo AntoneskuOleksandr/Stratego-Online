@@ -9,6 +9,7 @@ public class GameManager : NetworkBehaviour
     private BoardManager boardManager;
     private ClientRpcParams clientRpcParams = new ClientRpcParams { };
     private bool isHostTurn = true;
+    private bool isProcessingBattle = false;
 
     public void Initialize(BoardManager boardManager, UIManager uiManager, PiecePlacementManager piecePlacementManager)
     {
@@ -28,6 +29,12 @@ public class GameManager : NetworkBehaviour
     [ServerRpc(RequireOwnership = false)]
     public void HandleTileActionServerRpc(Vector2Int tileIndex, ulong clientId)
     {
+        if (isProcessingBattle)
+        {
+            Debug.Log("Action blocked: Processing battle.");
+            return;
+        }
+
         if ((IsHostPlayer(clientId) && !isHostTurn) || (!IsHostPlayer(clientId) && isHostTurn))
         {
             return;
@@ -158,18 +165,24 @@ public class GameManager : NetworkBehaviour
             attacker.MoveToTile(defenderTile);
 
             StartCoroutine(DelayBattle(attackerTile, defenderTile, clientId));
+            DeselectPieceClientRpc(clientId, clientRpcParams);
         }
     }
 
     private IEnumerator DelayBattle(Tile attackerTile, Tile defenderTile, ulong attackerClientId)
     {
+        isProcessingBattle = true;
         yield return new WaitForSeconds(2.0f);
 
         Piece attacker = attackerTile.GetPiece();
         Piece defender = defenderTile.GetPiece();
 
         if (attacker == null || defender == null)
+        {
             Debug.LogError("Attacker or defender is null");
+            isProcessingBattle = false;
+            yield break;
+        }
 
         var attackerRpcParams = new ClientRpcParams
         {
@@ -227,9 +240,10 @@ public class GameManager : NetworkBehaviour
             }
         }
 
-        DeselectPieceClientRpc(attackerClientId, attackerRpcParams);
         SwitchTurn();
+        isProcessingBattle = false;
     }
+
 
     [ClientRpc]
     public void RevealPieceClientRpc(Vector2Int pieceLocation)
