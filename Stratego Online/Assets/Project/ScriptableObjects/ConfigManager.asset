@@ -33,4 +33,4 @@ MonoBehaviour:
   TileMaterialWhite: {fileID: 2100000, guid: 351be7203fbdacb46b778e2270ca7cf5, type: 2}
   TileMaterialBlack: {fileID: 2100000, guid: d7cc20bea0765d941bf921a23dc9f34d, type: 2}
   TileColorHighlighted: {r: 0.07006621, g: 1, b: 0, a: 1}
-  hiddenPieceMesh: {fileID: -2432090755550338912, guid: 22f76e2c926b0b745aabcfcd1f8f7fb0, type: 3}
+  hiddenPieceMesh: {fileID: -2432090755550338912, guid: 528246dd3a313de49ad2e248c583f1f1, type: 3}

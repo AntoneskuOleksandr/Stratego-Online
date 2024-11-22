@@ -78,7 +78,8 @@ public class Bootstrap : NetworkBehaviour
             }
         }
 
-        Destroy(preGameManager.gameObject);
+        if (preGameManager != null)
+            Destroy(preGameManager.gameObject);
 
         gameManager.StartGame();
     }

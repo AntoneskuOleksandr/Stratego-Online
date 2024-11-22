@@ -37,9 +37,6 @@ public abstract class Piece : MonoBehaviour
 
         revealedMesh = meshFilter.sharedMesh;
         hiddenMesh = config.hiddenPieceMesh;
-
-        Debug.Log("revealedMesh: " + revealedMesh);
-        Debug.Log("hiddenMesh: " + hiddenMesh);
     }
 
     public int GetRank()
@@ -99,16 +96,16 @@ public abstract class Piece : MonoBehaviour
         highlightedTiles.Clear();
     }
 
-    public void MoveToTile(Tile newTile)
+    public void MoveToTile(Tile tile)
     {
-        if (currentTile != null)
-        {
-            currentTile.RemovePiece();
-        }
+        transform.DOMove(tile.Center, 0.3f);
+    }
+
+    public void ChangeTile(Tile newTile)
+    {
+        currentTile.RemovePiece();
         currentTile = newTile;
         newTile.PlacePiece(this);
-        transform.DOMove(newTile.Center, 0.3f);
-        Deselect();
     }
 
     public abstract List<Tile> GetPossibleMoves(Tile[,] allTiles);

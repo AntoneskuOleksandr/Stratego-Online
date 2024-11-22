@@ -8,7 +8,7 @@ public class GameManager : NetworkBehaviour
     private Dictionary<ulong, Piece> selectedPieces = new Dictionary<ulong, Piece>();
     private BoardManager boardManager;
     private ClientRpcParams clientRpcParams = new ClientRpcParams { };
-    private bool isHostTurn = true; 
+    private bool isHostTurn = true;
 
     public void Initialize(BoardManager boardManager, UIManager uiManager, PiecePlacementManager piecePlacementManager)
     {
@@ -109,12 +109,13 @@ public class GameManager : NetworkBehaviour
             if (tile.IsOccupied)
             {
                 ResolveBattleClientRpc(selectedPiece.GetTile().IndexInMatrix, tileIndex, clientId);
+
             }
             else
             {
                 MovePieceClientRpc(selectedPiece.GetTile().IndexInMatrix, tileIndex);
                 DeselectPieceServerRpc(clientId);
-                SwitchTurn(); 
+                SwitchTurn();
             }
         }
         else if (tile.IsOccupied && tile.GetPiece().PlayerId == clientId)
@@ -127,8 +128,11 @@ public class GameManager : NetworkBehaviour
     [ClientRpc]
     public void MovePieceClientRpc(Vector2Int pieceLocation, Vector2Int targetTileIndex)
     {
-        Piece piece = boardManager.GetTileAt(pieceLocation).GetPiece();
-        piece.MoveToTile(boardManager.GetTileAt(targetTileIndex));
+        Tile prevPieceTile = boardManager.GetTileAt(pieceLocation);
+        Tile newPieceTile = boardManager.GetTileAt(targetTileIndex);
+        Piece piece = prevPieceTile.GetPiece();
+        piece.MoveToTile(newPieceTile);
+        piece.ChangeTile(newPieceTile);
     }
 
     private bool CanMove(Piece piece, Tile tile)
@@ -151,18 +155,39 @@ public class GameManager : NetworkBehaviour
             RevealPieceClientRpc(attackerIndex);
             RevealPieceClientRpc(defenderIndex);
 
+            attacker.MoveToTile(defenderTile);
+
             StartCoroutine(DelayBattle(attackerTile, defenderTile, clientId));
         }
     }
 
-    private IEnumerator DelayBattle(Tile attackerTile, Tile defenderTile, ulong clientId)
+    private IEnumerator DelayBattle(Tile attackerTile, Tile defenderTile, ulong attackerClientId)
     {
-        yield return new WaitForSeconds(2.0f); 
+        yield return new WaitForSeconds(2.0f);
 
         Piece attacker = attackerTile.GetPiece();
         Piece defender = defenderTile.GetPiece();
 
-        if (defender != null && attacker != null)
+        if (attacker == null || defender == null)
+            Debug.LogError("Attacker or defender is null");
+
+        var attackerRpcParams = new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams
+            {
+                TargetClientIds = new[] { attackerClientId }
+            }
+        };
+
+        var defenderRpcParams = new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams
+            {
+                TargetClientIds = new[] { defender.PlayerId }
+            }
+        };
+
+        if (attacker != null && defender != null)
         {
             int attackerRank = attacker.GetRank();
             int defenderRank = defender.GetRank();
@@ -173,21 +198,25 @@ public class GameManager : NetworkBehaviour
             {
                 Destroy(attacker.gameObject);
                 attackerTile.RemovePiece();
+                HidePieceClientRpc(defenderTile.IndexInMatrix, attackerRpcParams);
             }
             else if (attackerType == "Spy" && defenderType == "Marshal")
             {
                 Destroy(defender.gameObject);
-                attacker.MoveToTile(defenderTile);
+                attacker.ChangeTile(defenderTile);
+                HidePieceClientRpc(attackerTile.IndexInMatrix, defenderRpcParams);
             }
             else if (attackerRank > defenderRank)
             {
                 Destroy(defender.gameObject);
-                attacker.MoveToTile(defenderTile);
+                attacker.ChangeTile(defenderTile);
+                HidePieceClientRpc(attackerTile.IndexInMatrix, defenderRpcParams);
             }
             else if (attackerRank < defenderRank)
             {
                 Destroy(attacker.gameObject);
                 attackerTile.RemovePiece();
+                HidePieceClientRpc(defenderTile.IndexInMatrix, attackerRpcParams);
             }
             else
             {
@@ -197,7 +226,8 @@ public class GameManager : NetworkBehaviour
                 defenderTile.RemovePiece();
             }
         }
-        selectedPieces[clientId] = null;
+
+        DeselectPieceClientRpc(attackerClientId, attackerRpcParams);
         SwitchTurn();
     }
 
@@ -212,6 +242,19 @@ public class GameManager : NetworkBehaviour
             piece.SetRevealedState();
         }
     }
+
+    [ClientRpc]
+    public void HidePieceClientRpc(Vector2Int pieceLocation, ClientRpcParams clientRpcParams)
+    {
+        Tile tile = boardManager.GetTileAt(pieceLocation);
+        Piece piece = tile.GetPiece();
+
+        if (piece != null)
+        {
+            piece.SetHiddenState();
+        }
+    }
+
 
     private void SwitchTurn()
     {
