@@ -42,30 +42,44 @@ public class PiecePlacementManager : NetworkBehaviour
     }
 
     [ClientRpc]
-    private void InitializePieceClientRpc(Vector2Int tileIndex, string PieceName, ulong clientId)
+    private void InitializePieceClientRpc(Vector2Int tileIndex, string PieceName, ulong pieceOwnerId)
     {
         PieceData pieceData = config.GetPieceDataByName(PieceName);
         Tile tile = boardManager.GetTileAt(tileIndex);
-        GameObject pieceGO = Instantiate(pieceData.Prefab, tile.transform.position, clientId == 0 ? Quaternion.identity : Quaternion.Euler(0, 180, 0));
+       
+        GameObject pieceGO;
+        pieceGO = Instantiate(pieceData.Prefab, tile.transform.position, pieceOwnerId == 0 ? Quaternion.identity : Quaternion.Euler(0, 180, 0));
+       
         Piece piece = pieceGO.GetComponent<Piece>();
+
+        piece.Initialize(tile, boardManager, pieceData, pieceOwnerId, config);
         tile.SetPiece(piece);
-        piece.Initialize(tile, boardManager, pieceData, clientId);
+
+        if (NetworkManager.Singleton.LocalClientId == pieceOwnerId)
+        {
+            piece.SetRevealedState();
+        }
+        else
+        {
+            piece.SetHiddenState();
+        }
+
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void PlacePiecesRandomlyServerRpc(ulong clientId)
+    public void PlacePiecesRandomlyServerRpc(ulong pieceOwnerId)
     {
-        List<Tile> availableTiles = GetAvailableTiles(clientId);
+        List<Tile> availableTiles = GetAvailableTiles(pieceOwnerId);
 
         foreach (PieceData pieceData in config.PiecesData)
         {
-            int pieceCount = boardManager.pieceCountsByPlayer[clientId][pieceData.Name];
+            int pieceCount = boardManager.pieceCountsByPlayer[pieceOwnerId][pieceData.Name];
             for (int i = 0; i < pieceCount; i++)
             {
                 if (availableTiles.Count == 0) break;
                 Tile randomTile = availableTiles[Random.Range(0, availableTiles.Count)];
                 availableTiles.Remove(randomTile);
-                TryToPlacePieceServerRpc(randomTile.IndexInMatrix, pieceData.Name, clientId);
+                TryToPlacePieceServerRpc(randomTile.IndexInMatrix, pieceData.Name, pieceOwnerId);
             }
         }
     }

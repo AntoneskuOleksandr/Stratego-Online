@@ -13,6 +13,7 @@ public class ConfigManager : ScriptableObject
     public Material TileMaterialWhite;
     public Material TileMaterialBlack;
     public Color TileColorHighlighted;
+    public Mesh hiddenPieceMesh;
 
     public PieceData GetPieceDataByName(string name)
     {

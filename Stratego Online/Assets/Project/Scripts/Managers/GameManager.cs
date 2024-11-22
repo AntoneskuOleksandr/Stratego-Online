@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -147,6 +148,22 @@ public class GameManager : NetworkBehaviour
 
         if (defender != null && attacker.PlayerId != defender.PlayerId)
         {
+            RevealPieceClientRpc(attackerIndex);
+            RevealPieceClientRpc(defenderIndex);
+
+            StartCoroutine(DelayBattle(attackerTile, defenderTile, clientId));
+        }
+    }
+
+    private IEnumerator DelayBattle(Tile attackerTile, Tile defenderTile, ulong clientId)
+    {
+        yield return new WaitForSeconds(2.0f); 
+
+        Piece attacker = attackerTile.GetPiece();
+        Piece defender = defenderTile.GetPiece();
+
+        if (defender != null && attacker != null)
+        {
             int attackerRank = attacker.GetRank();
             int defenderRank = defender.GetRank();
             string attackerType = attacker.GetPieceType();
@@ -181,7 +198,19 @@ public class GameManager : NetworkBehaviour
             }
         }
         selectedPieces[clientId] = null;
-        SwitchTurn(); 
+        SwitchTurn();
+    }
+
+    [ClientRpc]
+    public void RevealPieceClientRpc(Vector2Int pieceLocation)
+    {
+        Tile tile = boardManager.GetTileAt(pieceLocation);
+        Piece piece = tile.GetPiece();
+
+        if (piece != null)
+        {
+            piece.SetRevealedState();
+        }
     }
 
     private void SwitchTurn()

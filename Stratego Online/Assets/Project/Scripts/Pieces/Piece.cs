@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using NUnit.Framework.Internal;
+using System.Collections;
 
 public abstract class Piece : MonoBehaviour
 {
@@ -9,22 +11,35 @@ public abstract class Piece : MonoBehaviour
     protected Tile currentTile;
     private float originalYPosition;
     private float selectedYPosition;
+
     private BoardManager boardManager;
     private List<Tile> highlightedTiles = new List<Tile>();
+
+    private MeshFilter meshFilter;
+    private Mesh revealedMesh;
+    private Mesh hiddenMesh;
 
     private void Awake()
     {
         originalYPosition = transform.position.y;
         selectedYPosition = originalYPosition + 0.5f;
+        meshFilter = GetComponent<MeshFilter>();
     }
 
-    public void Initialize(Tile startTile, BoardManager boardManager, PieceData pieceData, ulong playerId)
+    public void Initialize(Tile startTile, BoardManager boardManager, PieceData pieceData, ulong playerId, ConfigManager config)
     {
         this.PieceData = pieceData;
         this.boardManager = boardManager;
         this.PlayerId = playerId;
+
         currentTile = startTile;
         transform.position = currentTile.Center;
+
+        revealedMesh = meshFilter.sharedMesh;
+        hiddenMesh = config.hiddenPieceMesh;
+
+        Debug.Log("revealedMesh: " + revealedMesh);
+        Debug.Log("hiddenMesh: " + hiddenMesh);
     }
 
     public int GetRank()
@@ -96,6 +111,8 @@ public abstract class Piece : MonoBehaviour
         Deselect();
     }
 
+    public abstract List<Tile> GetPossibleMoves(Tile[,] allTiles);
+
     private void RaisePiece()
     {
         transform.DOMoveY(selectedYPosition, 0.3f);
@@ -106,7 +123,15 @@ public abstract class Piece : MonoBehaviour
         transform.DOMoveY(originalYPosition, 0.3f);
     }
 
-    public abstract List<Tile> GetPossibleMoves(Tile[,] allTiles);
+    public void SetHiddenState()
+    {
+        meshFilter.mesh = hiddenMesh;
+    }
+
+    public void SetRevealedState()
+    {
+        meshFilter.mesh = revealedMesh;
+    }
 
     private void OnDestroy()
     {
