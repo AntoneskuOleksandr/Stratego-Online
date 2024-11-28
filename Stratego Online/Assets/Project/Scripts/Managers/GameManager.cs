@@ -213,6 +213,13 @@ public class GameManager : NetworkBehaviour
                 attackerTile.RemovePiece();
                 HidePieceClientRpc(defenderTile.IndexInMatrix, attackerRpcParams);
             }
+            else if (defenderType == "Flag")
+            {
+                Destroy(defender.gameObject);
+                attacker.ChangeTile(defenderTile);
+                HidePieceClientRpc(attackerTile.IndexInMatrix, defenderRpcParams);
+                GameOver(attackerClientId);
+            }
             else if (attackerType == "Spy" && defenderType == "Marshal")
             {
                 Destroy(defender.gameObject);
@@ -244,6 +251,10 @@ public class GameManager : NetworkBehaviour
         isProcessingBattle = false;
     }
 
+    private void GameOver(ulong winerId)
+    {
+        Debug.Log("GameOver; Player " + winerId + " Won!");
+    }
 
     [ClientRpc]
     public void RevealPieceClientRpc(Vector2Int pieceLocation)
