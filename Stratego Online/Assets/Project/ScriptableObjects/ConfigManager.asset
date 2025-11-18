@@ -30,7 +30,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 63288264c12a2e744b949ed4decf30ba, type: 2}
   - {fileID: 11400000, guid: 09107971f0f117241af853c2ebe0b887, type: 2}
   TileMaterialLake: {fileID: 2100000, guid: bf9cce061d07be14a8d89d3d28185012, type: 2}
-  TileMaterialWhite: {fileID: 2100000, guid: 351be7203fbdacb46b778e2270ca7cf5, type: 2}
-  TileMaterialBlack: {fileID: 2100000, guid: d7cc20bea0765d941bf921a23dc9f34d, type: 2}
+  TileMaterialWhite: {fileID: 2100000, guid: 330c15c7e7665704b88e3c99ed20ce9d, type: 2}
+  TileMaterialBlack: {fileID: 2100000, guid: 1175dc0be166c8c4fbf7af0ec8eb5e01, type: 2}
   TileColorHighlighted: {r: 0.07006621, g: 1, b: 0, a: 1}
   hiddenPieceMesh: {fileID: -2432090755550338912, guid: 528246dd3a313de49ad2e248c583f1f1, type: 3}

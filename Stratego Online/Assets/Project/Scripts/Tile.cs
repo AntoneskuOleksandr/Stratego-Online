@@ -64,30 +64,51 @@ public class Tile : MonoBehaviour
         return occupyingPiece;
     }
 
+    // Highlight the tile by blending the original color with the highlight color (green)
     public void Highlight()
     {
-        propertyBlock.SetColor("_Color", Color.Lerp(originalColor, highlightedColor, 0.5f));
+        if (tileRenderer == null)
+            tileRenderer = GetComponent<Renderer>();
+
+        // Use MaterialPropertyBlock to modify only this specific tile's material properties
+        propertyBlock = new MaterialPropertyBlock();
+        tileRenderer.GetPropertyBlock(propertyBlock);
+
+        // Blend the original color with the highlight color
+        Color newColor = Color.Lerp(originalColor, highlightedColor, 0.5f); // Adjust blend strength (0.5)
+        propertyBlock.SetColor("_BaseColor", newColor); // Update _BaseColor for URP/Lit shader
         tileRenderer.SetPropertyBlock(propertyBlock);
     }
 
+    // Reset the tile's color to its original state
     public void Unhighlight()
     {
-        propertyBlock.SetColor("_Color", originalColor);
+        if (tileRenderer == null)
+            tileRenderer = GetComponent<Renderer>();
+
+        // Reset the color to the original color
+        propertyBlock = new MaterialPropertyBlock();
+        tileRenderer.GetPropertyBlock(propertyBlock);
+        propertyBlock.SetColor("_BaseColor", originalColor);
         tileRenderer.SetPropertyBlock(propertyBlock);
     }
 
+    // Set the material for the tile and store the original color
     public void SetMaterial(Material material)
     {
         tileRenderer = GetComponent<Renderer>();
         tileMaterial = material;
         tileRenderer.material = tileMaterial;
 
-        originalColor = tileMaterial.color;
+        // Store the original color from the material
+        originalColor = tileMaterial.GetColor("_BaseColor");
 
+        // Create a new MaterialPropertyBlock
         propertyBlock = new MaterialPropertyBlock();
         tileRenderer.GetPropertyBlock(propertyBlock);
     }
 
+    // Start the game (set to true)
     public void StartGame()
     {
         isGameStarted = true;
