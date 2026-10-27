@@ -6,6 +6,12 @@ Stratego Online explores how to translate a hidden-information board game into a
 
 This is a **personal learning and portfolio project**, not an official Stratego release or a production-ready multiplayer service.
 
+## Gameplay video
+
+[![Watch Stratego Online gameplay](https://img.youtube.com/vi/t5A2zLExzxQ/hqdefault.jpg)](https://www.youtube.com/watch?v=t5A2zLExzxQ)
+
+**[Watch the project video on YouTube](https://www.youtube.com/watch?v=t5A2zLExzxQ)**
+
 ## What the prototype implements
 
 - **Two-player host/client session flow:** a menu with host/client controls and a two-player requirement to transition to the game scene.
@@ -131,7 +137,7 @@ Stratego Online/                      <-- Unity Hub project folder
 
 This repository demonstrates networked turn-based gameplay, piece rules, pre-game deployment, and synchronization work. It is **not** presented as a polished, competitive, security-hardened or fully rules-complete game. Multiplayer edge cases, battle-rule details, disconnect recovery, and end-of-match presentation require additional validation before such claims could be made. At present, the flag-capture code logs the winner rather than displaying a complete post-match result flow.
 
-No dedicated gameplay screenshots or video are currently committed. Visual documentation can be added when verified capture media is available.
+The gameplay video above is hosted on YouTube. No dedicated gameplay screenshots are currently committed; verified still images can be added later.
 
 ## Author and attribution
 
